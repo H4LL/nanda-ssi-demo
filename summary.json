@@ -1,0 +1,97 @@
+[
+  {
+    "question": "What is my public DID?",
+    "responses": [
+      "What is my public DID?",
+      "",
+      "{\n  \"result\": {\n    \"did\": \"96vG2uDbfGkHL1dzpzLQpN\",\n    \"verkey\": \"5R83UTtCRwYrz42Kn5SVDHN4YGomAmQbZn9gb7SPEz3L\",\n    \"posture\": \"posted\",\n    \"key_type\": \"ed25519\",\n    \"method\": \"sov\",\n    \"metadata\": {\n      \"posted\": true\n    }\n  }\n}",
+      "Your public DID (Decentralized Identifier) is: 96vG2uDbfGkHL1dzpzLQpN"
+    ]
+  },
+  {
+    "question": "How many connections do I have?",
+    "responses": [
+      "What is my public DID?",
+      "What is my public DID?",
+      "",
+      "{\n  \"result\": {\n    \"did\": \"96vG2uDbfGkHL1dzpzLQpN\",\n    \"verkey\": \"5R83UTtCRwYrz42Kn5SVDHN4YGomAmQbZn9gb7SPEz3L\",\n    \"posture\": \"posted\",\n    \"key_type\": \"ed25519\",\n    \"method\": \"sov\",\n    \"metadata\": {\n      \"posted\": true\n    }\n  }\n}",
+      "Your public DID (Decentralized Identifier) is: 96vG2uDbfGkHL1dzpzLQpN",
+      "How many connections do I have?",
+      "",
+      "{\n  \"results\": [\n    {\n      \"state\": \"active\",\n      \"created_at\": \"2025-04-07T09:05:26.567422Z\",\n      \"updated_at\": \"2025-04-07T09:17:40.910642Z\",\n      \"connection_id\": \"c1b58ab2-a3e5-409c-bd9e-a2c55b49c1f8\",\n      \"my_did\": \"did:peer:4zQmdSjL5HfxbrTRGVff4n57rtDzpqjM5ADDezfhrDynHXej\",\n      \"their_did\": \"did:peer:4zQmRJeoJ2jpmxufi9N7BUs8ZRfyd7MwaRiusGkmuR3Z1fwa\",\n      \"their_label\": \"alice.agent\",\n      \"their_role\": \"invitee\",\n      \"connection_protocol\": \"didexchange/1.1\",\n      \"rfc23_state\": \"completed\",\n      \"invitation_key\": \"GghVf8ALoRd5Passr3ANjEHMPmfrKABva1gvdTFQEhTt\",\n      \"invitation_msg_id\": \"1e94b7f0-bcce-48c0-ae52-1b318851ae9f\",\n      \"request_id\": \"dabc2ec5-9138-459d-9a41-1245e9ceb3b7\",\n      \"accept\": \"auto\",\n      \"invitation_mode\": \"once\"\n    }\n  ]\n}",
+      "You have 1 active connection. Here are the details of your connections:\n\n\nConnection ID: c1b58ab2-a3e5-409c-bd9e-a2c55b49c1f8\n\n\nYour DID involved in this connection is: did:peer:4zQmdSjL5HfxbrTRGVff4n57rtDzpqjM5ADDezfhrDynHXej\n\n\nTheir DID involved in this connection is: did:peer:4zQmRJeoJ2jpmxufi9N7BUs8ZRfyd7MwaRiusGkmuR3Z1fwa\n\n\nTheir label is: alice.agent\nTheir role is: invitee"
+    ]
+  },
+  {
+    "question": "Am I currently connected to someone named Alice?",
+    "responses": [
+      "What is my public DID?",
+      "What is my public DID?",
+      "",
+      "{\n  \"result\": {\n    \"did\": \"96vG2uDbfGkHL1dzpzLQpN\",\n    \"verkey\": \"5R83UTtCRwYrz42Kn5SVDHN4YGomAmQbZn9gb7SPEz3L\",\n    \"posture\": \"posted\",\n    \"key_type\": \"ed25519\",\n    \"method\": \"sov\",\n    \"metadata\": {\n      \"posted\": true\n    }\n  }\n}",
+      "Your public DID (Decentralized Identifier) is: 96vG2uDbfGkHL1dzpzLQpN",
+      "How many connections do I have?",
+      "What is my public DID?",
+      "What is my public DID?",
+      "",
+      "{\n  \"result\": {\n    \"did\": \"96vG2uDbfGkHL1dzpzLQpN\",\n    \"verkey\": \"5R83UTtCRwYrz42Kn5SVDHN4YGomAmQbZn9gb7SPEz3L\",\n    \"posture\": \"posted\",\n    \"key_type\": \"ed25519\",\n    \"method\": \"sov\",\n    \"metadata\": {\n      \"posted\": true\n    }\n  }\n}",
+      "Your public DID (Decentralized Identifier) is: 96vG2uDbfGkHL1dzpzLQpN",
+      "How many connections do I have?",
+      "",
+      "{\n  \"results\": [\n    {\n      \"state\": \"active\",\n      \"created_at\": \"2025-04-07T09:05:26.567422Z\",\n      \"updated_at\": \"2025-04-07T09:17:40.910642Z\",\n      \"connection_id\": \"c1b58ab2-a3e5-409c-bd9e-a2c55b49c1f8\",\n      \"my_did\": \"did:peer:4zQmdSjL5HfxbrTRGVff4n57rtDzpqjM5ADDezfhrDynHXej\",\n      \"their_did\": \"did:peer:4zQmRJeoJ2jpmxufi9N7BUs8ZRfyd7MwaRiusGkmuR3Z1fwa\",\n      \"their_label\": \"alice.agent\",\n      \"their_role\": \"invitee\",\n      \"connection_protocol\": \"didexchange/1.1\",\n      \"rfc23_state\": \"completed\",\n      \"invitation_key\": \"GghVf8ALoRd5Passr3ANjEHMPmfrKABva1gvdTFQEhTt\",\n      \"invitation_msg_id\": \"1e94b7f0-bcce-48c0-ae52-1b318851ae9f\",\n      \"request_id\": \"dabc2ec5-9138-459d-9a41-1245e9ceb3b7\",\n      \"accept\": \"auto\",\n      \"invitation_mode\": \"once\"\n    }\n  ]\n}",
+      "You have 1 active connection. Here are the details of your connections:\n\n\nConnection ID: c1b58ab2-a3e5-409c-bd9e-a2c55b49c1f8\n\n\nYour DID involved in this connection is: did:peer:4zQmdSjL5HfxbrTRGVff4n57rtDzpqjM5ADDezfhrDynHXej\n\n\nTheir DID involved in this connection is: did:peer:4zQmRJeoJ2jpmxufi9N7BUs8ZRfyd7MwaRiusGkmuR3Z1fwa\n\n\nTheir label is: alice.agent\nTheir role is: invitee",
+      "Am I currently connected to someone named Alice?",
+      "",
+      "{\n  \"results\": [\n    {\n      \"state\": \"active\",\n      \"created_at\": \"2025-04-07T09:05:26.567422Z\",\n      \"updated_at\": \"2025-04-07T09:17:40.910642Z\",\n      \"connection_id\": \"c1b58ab2-a3e5-409c-bd9e-a2c55b49c1f8\",\n      \"my_did\": \"did:peer:4zQmdSjL5HfxbrTRGVff4n57rtDzpqjM5ADDezfhrDynHXej\",\n      \"their_did\": \"did:peer:4zQmRJeoJ2jpmxufi9N7BUs8ZRfyd7MwaRiusGkmuR3Z1fwa\",\n      \"their_label\": \"alice.agent\",\n      \"their_role\": \"invitee\",\n      \"connection_protocol\": \"didexchange/1.1\",\n      \"rfc23_state\": \"completed\",\n      \"invitation_key\": \"GghVf8ALoRd5Passr3ANjEHMPmfrKABva1gvdTFQEhTt\",\n      \"invitation_msg_id\": \"1e94b7f0-bcce-48c0-ae52-1b318851ae9f\",\n      \"request_id\": \"dabc2ec5-9138-459d-9a41-1245e9ceb3b7\",\n      \"accept\": \"auto\",\n      \"invitation_mode\": \"once\"\n    }\n  ]\n}",
+      "Based on the output, it appears that you are currently connected to someone named Alice. The connection state is \"active\" and the role of the other party is \"invitee\", which indicates a pending invitation or request to connect. However, I do not have any information indicating whether this connection has been accepted or rejected by Alice.\n\nTo confirm whether the connection has been established, you can check the \"rfc23_state\" field, which indicates the current state of the RFC 23 protocol used for connection establishment. In this case, it is set to \"completed\", but I would recommend checking with Alice directly to confirm the status of the connection."
+    ]
+  },
+  {
+    "question": "Could you say hi to Alice for me?",
+    "responses": [
+      "What is my public DID?",
+      "What is my public DID?",
+      "",
+      "{\n  \"result\": {\n    \"did\": \"96vG2uDbfGkHL1dzpzLQpN\",\n    \"verkey\": \"5R83UTtCRwYrz42Kn5SVDHN4YGomAmQbZn9gb7SPEz3L\",\n    \"posture\": \"posted\",\n    \"key_type\": \"ed25519\",\n    \"method\": \"sov\",\n    \"metadata\": {\n      \"posted\": true\n    }\n  }\n}",
+      "Your public DID (Decentralized Identifier) is: 96vG2uDbfGkHL1dzpzLQpN",
+      "How many connections do I have?",
+      "What is my public DID?",
+      "What is my public DID?",
+      "",
+      "{\n  \"result\": {\n    \"did\": \"96vG2uDbfGkHL1dzpzLQpN\",\n    \"verkey\": \"5R83UTtCRwYrz42Kn5SVDHN4YGomAmQbZn9gb7SPEz3L\",\n    \"posture\": \"posted\",\n    \"key_type\": \"ed25519\",\n    \"method\": \"sov\",\n    \"metadata\": {\n      \"posted\": true\n    }\n  }\n}",
+      "Your public DID (Decentralized Identifier) is: 96vG2uDbfGkHL1dzpzLQpN",
+      "How many connections do I have?",
+      "",
+      "{\n  \"results\": [\n    {\n      \"state\": \"active\",\n      \"created_at\": \"2025-04-07T09:05:26.567422Z\",\n      \"updated_at\": \"2025-04-07T09:17:40.910642Z\",\n      \"connection_id\": \"c1b58ab2-a3e5-409c-bd9e-a2c55b49c1f8\",\n      \"my_did\": \"did:peer:4zQmdSjL5HfxbrTRGVff4n57rtDzpqjM5ADDezfhrDynHXej\",\n      \"their_did\": \"did:peer:4zQmRJeoJ2jpmxufi9N7BUs8ZRfyd7MwaRiusGkmuR3Z1fwa\",\n      \"their_label\": \"alice.agent\",\n      \"their_role\": \"invitee\",\n      \"connection_protocol\": \"didexchange/1.1\",\n      \"rfc23_state\": \"completed\",\n      \"invitation_key\": \"GghVf8ALoRd5Passr3ANjEHMPmfrKABva1gvdTFQEhTt\",\n      \"invitation_msg_id\": \"1e94b7f0-bcce-48c0-ae52-1b318851ae9f\",\n      \"request_id\": \"dabc2ec5-9138-459d-9a41-1245e9ceb3b7\",\n      \"accept\": \"auto\",\n      \"invitation_mode\": \"once\"\n    }\n  ]\n}",
+      "You have 1 active connection. Here are the details of your connections:\n\n\nConnection ID: c1b58ab2-a3e5-409c-bd9e-a2c55b49c1f8\n\n\nYour DID involved in this connection is: did:peer:4zQmdSjL5HfxbrTRGVff4n57rtDzpqjM5ADDezfhrDynHXej\n\n\nTheir DID involved in this connection is: did:peer:4zQmRJeoJ2jpmxufi9N7BUs8ZRfyd7MwaRiusGkmuR3Z1fwa\n\n\nTheir label is: alice.agent\nTheir role is: invitee",
+      "Am I currently connected to someone named Alice?",
+      "What is my public DID?",
+      "What is my public DID?",
+      "",
+      "{\n  \"result\": {\n    \"did\": \"96vG2uDbfGkHL1dzpzLQpN\",\n    \"verkey\": \"5R83UTtCRwYrz42Kn5SVDHN4YGomAmQbZn9gb7SPEz3L\",\n    \"posture\": \"posted\",\n    \"key_type\": \"ed25519\",\n    \"method\": \"sov\",\n    \"metadata\": {\n      \"posted\": true\n    }\n  }\n}",
+      "Your public DID (Decentralized Identifier) is: 96vG2uDbfGkHL1dzpzLQpN",
+      "How many connections do I have?",
+      "What is my public DID?",
+      "What is my public DID?",
+      "",
+      "{\n  \"result\": {\n    \"did\": \"96vG2uDbfGkHL1dzpzLQpN\",\n    \"verkey\": \"5R83UTtCRwYrz42Kn5SVDHN4YGomAmQbZn9gb7SPEz3L\",\n    \"posture\": \"posted\",\n    \"key_type\": \"ed25519\",\n    \"method\": \"sov\",\n    \"metadata\": {\n      \"posted\": true\n    }\n  }\n}",
+      "Your public DID (Decentralized Identifier) is: 96vG2uDbfGkHL1dzpzLQpN",
+      "How many connections do I have?",
+      "",
+      "{\n  \"results\": [\n    {\n      \"state\": \"active\",\n      \"created_at\": \"2025-04-07T09:05:26.567422Z\",\n      \"updated_at\": \"2025-04-07T09:17:40.910642Z\",\n      \"connection_id\": \"c1b58ab2-a3e5-409c-bd9e-a2c55b49c1f8\",\n      \"my_did\": \"did:peer:4zQmdSjL5HfxbrTRGVff4n57rtDzpqjM5ADDezfhrDynHXej\",\n      \"their_did\": \"did:peer:4zQmRJeoJ2jpmxufi9N7BUs8ZRfyd7MwaRiusGkmuR3Z1fwa\",\n      \"their_label\": \"alice.agent\",\n      \"their_role\": \"invitee\",\n      \"connection_protocol\": \"didexchange/1.1\",\n      \"rfc23_state\": \"completed\",\n      \"invitation_key\": \"GghVf8ALoRd5Passr3ANjEHMPmfrKABva1gvdTFQEhTt\",\n      \"invitation_msg_id\": \"1e94b7f0-bcce-48c0-ae52-1b318851ae9f\",\n      \"request_id\": \"dabc2ec5-9138-459d-9a41-1245e9ceb3b7\",\n      \"accept\": \"auto\",\n      \"invitation_mode\": \"once\"\n    }\n  ]\n}",
+      "You have 1 active connection. Here are the details of your connections:\n\n\nConnection ID: c1b58ab2-a3e5-409c-bd9e-a2c55b49c1f8\n\n\nYour DID involved in this connection is: did:peer:4zQmdSjL5HfxbrTRGVff4n57rtDzpqjM5ADDezfhrDynHXej\n\n\nTheir DID involved in this connection is: did:peer:4zQmRJeoJ2jpmxufi9N7BUs8ZRfyd7MwaRiusGkmuR3Z1fwa\n\n\nTheir label is: alice.agent\nTheir role is: invitee",
+      "Am I currently connected to someone named Alice?",
+      "",
+      "{\n  \"results\": [\n    {\n      \"state\": \"active\",\n      \"created_at\": \"2025-04-07T09:05:26.567422Z\",\n      \"updated_at\": \"2025-04-07T09:17:40.910642Z\",\n      \"connection_id\": \"c1b58ab2-a3e5-409c-bd9e-a2c55b49c1f8\",\n      \"my_did\": \"did:peer:4zQmdSjL5HfxbrTRGVff4n57rtDzpqjM5ADDezfhrDynHXej\",\n      \"their_did\": \"did:peer:4zQmRJeoJ2jpmxufi9N7BUs8ZRfyd7MwaRiusGkmuR3Z1fwa\",\n      \"their_label\": \"alice.agent\",\n      \"their_role\": \"invitee\",\n      \"connection_protocol\": \"didexchange/1.1\",\n      \"rfc23_state\": \"completed\",\n      \"invitation_key\": \"GghVf8ALoRd5Passr3ANjEHMPmfrKABva1gvdTFQEhTt\",\n      \"invitation_msg_id\": \"1e94b7f0-bcce-48c0-ae52-1b318851ae9f\",\n      \"request_id\": \"dabc2ec5-9138-459d-9a41-1245e9ceb3b7\",\n      \"accept\": \"auto\",\n      \"invitation_mode\": \"once\"\n    }\n  ]\n}",
+      "Based on the output, it appears that you are currently connected to someone named Alice. The connection state is \"active\" and the role of the other party is \"invitee\", which indicates a pending invitation or request to connect. However, I do not have any information indicating whether this connection has been accepted or rejected by Alice.\n\nTo confirm whether the connection has been established, you can check the \"rfc23_state\" field, which indicates the current state of the RFC 23 protocol used for connection establishment. In this case, it is set to \"completed\", but I would recommend checking with Alice directly to confirm the status of the connection.",
+      "Could you say hi to Alice for me?",
+      "",
+      "Error: ToolException(\"Error executing tool send_message: 404, message='Attempt to decode JSON with unexpected mimetype: text/plain; charset=utf-8', url='http://localhost:8021/connections/get_connection_by_did/send-message'\")\n Please fix your mistakes.",
+      "",
+      "Error: get_connection_by_did is not a valid tool, try one of [query_connections, create_invitation, receive_invitation, accept_invitation, accept_request, send_message, get_public_did, get_schemas, get_credential_definitions, issue_credential, store_credential, send_proof_request, get_proof_record, issue_dynamic_credential, query_connection_by_alias, send_message_by_alias].",
+      "",
+      "{}",
+      "I've sent a message to Alice on your behalf. The message is: \"Hi Alice!\".\n\nConnection details:\n\nConnection ID: c1b58ab2-a3e5-409c-bd9e-a2c55b49c1f8\nYour DID involved in this connection is: did:peer:4zQmdSjL5HfxbrTRGVff4n57rtDzpqjM5ADDezfhrDynHXej\nTheir DID involved in this connection is: did:peer:4zQmRJeoJ2jpmxufi9N7BUs8ZRfyd7MwaRiusGkmuR3Z1fwa\nTheir label is: alice.agent\nTheir role is: invitee"
+    ]
+  }
+]

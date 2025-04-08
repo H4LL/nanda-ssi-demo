@@ -1,0 +1,30 @@
+version: "3.8"
+
+services:
+
+  acapy-issuer:
+    image: acapy-base:latest
+    container_name: acapy_issuer
+    platform: "linux/amd64"
+    restart: unless-stopped
+    ports:
+      - "8000:8000"   # Inbound transport port for agent communication (issuer)
+      - "8001:8001"   # Admin API port (issuer)
+    environment:
+      - ACAPY_LABEL=IssuerAgent
+      - ACAPY_ADMIN_INSECURE_MODE=true
+      - ACAPY_INBOUND_TRANSPORT=[["http", "0.0.0.0", "8000"]]
+      - ACAPY_OUTBOUND_TRANSPORT=http
+      - ACAPY_ADMIN=[0.0.0.0,8001]
+      - ACAPY_ENDPOINT=http://localhost:8000
+      - ACAPY_GENESIS_URL=http://test.bcovrin.vonx.io/genesis
+      - ACAPY_WALLET_TYPE=askar
+      - ACAPY_WALLET_NAME=issuerwallet
+      - ACAPY_WALLET_KEY=issuerkey
+      - ACAPY_LOG_LEVEL=info
+      - ACAPY_AUTO_PROVISION=true
+      - ACAPY_AUTO_ACCEPT_INVITES=true
+      - ACAPY_AUTO_ACCEPT_REQUESTS=true
+      - ACAPY_AUTO_PING_CONNECTION=true
+      - ACAPY_TAILS_SERVER_BASE_URL=http://localhost:8002
+      - ACAPY_SEED=issuer00000000000000000000000000

@@ -7,7 +7,8 @@ import logging
 import base64
 
 # Read the base URL from environment if needed, otherwise default to the operational endpoint.
-TRACTION_BASE_URL = os.environ.get("ACAPY_BASE_URL", "http://localhost:8032")
+TRACTION_BASE_URL = "http://localhost:8032"
+
 
 # Configure logging.
 logger = logging.getLogger(__name__)

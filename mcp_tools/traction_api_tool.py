@@ -5,12 +5,21 @@ import aiohttp
 from mcp.server.fastmcp import FastMCP
 import logging
 import base64
+from dotenv import load_dotenv
 
-# Read the base URL from environment if needed, otherwise default to the operational endpoint.
+# Load environment variables
+load_dotenv()
+
+TENANT_ID = os.getenv("TENANT_ID", "").strip()
+API_KEY = os.getenv("API_KEY", "").strip()
+
+print("API_TOOL")
+print("TENANT_ID:", repr(TENANT_ID))
+print("API_KEY:", repr(API_KEY))
+
 TRACTION_BASE_URL = "http://localhost:8032"
 
-
-# Configure logging.
+# Configure logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 if not logger.handlers:
@@ -20,81 +29,68 @@ if not logger.handlers:
     ch.setFormatter(formatter)
     logger.addHandler(ch)
 
-# Create an MCP server instance.
 mcp = FastMCP("AcaPyMCPToolsEnriched")
-
-# Set a total timeout for HTTP requests.
 HTTP_TIMEOUT = aiohttp.ClientTimeout(total=10)
 
 async def http_request(method: str, path: str, payload: dict = None, headers: dict = None) -> dict:
-    """
-    Helper function to call ACA‑Py endpoints with a timeout.
-    It checks for HTTP error statuses and returns an error dictionary if necessary.
-    """
-    # Construct the URL using the operational base URL.
     url = TRACTION_BASE_URL.rstrip("/") + path
     logger.info("Making %s request to %s", method.upper(), url)
     async with aiohttp.ClientSession(timeout=HTTP_TIMEOUT) as session:
+        async def parse_response(resp):
+            if resp.status not in (200, 201):
+                error_text = await resp.text()
+                logger.error("Error response (%s): %s", resp.status, error_text)
+                return {"error": error_text, "status": resp.status}
+            return await resp.json()
+
         if method.lower() == "get":
             async with session.get(url, params=payload, headers=headers) as resp:
-                if resp.status != 200:
-                    error_text = await resp.text()
-                    logger.error("Error response (%s): %s", resp.status, error_text)
-                    return {"error": error_text, "status": resp.status}
-                return await resp.json()
+                return await parse_response(resp)
         elif method.lower() == "post":
             async with session.post(url, json=payload, headers=headers) as resp:
-                if resp.status not in (200, 201):
-                    error_text = await resp.text()
-                    logger.error("Error response (%s): %s", resp.status, error_text)
-                    return {"error": error_text, "status": resp.status}
-                return await resp.json()
+                return await parse_response(resp)
         elif method.lower() == "put":
             async with session.put(url, json=payload, headers=headers) as resp:
-                if resp.status != 200:
-                    error_text = await resp.text()
-                    logger.error("Error response (%s): %s", resp.status, error_text)
-                    return {"error": error_text, "status": resp.status}
-                return await resp.json()
+                return await parse_response(resp)
         elif method.lower() == "delete":
             async with session.delete(url, json=payload, headers=headers) as resp:
-                if resp.status != 200:
-                    error_text = await resp.text()
-                    logger.error("Error response (%s): %s", resp.status, error_text)
-                    return {"error": error_text, "status": resp.status}
-                return await resp.json()
+                return await parse_response(resp)
         else:
             raise ValueError(f"Unsupported HTTP method: {method}")
-        
-API_KEY="fd34f6365cef4ae0942e9d847bd22e96"
-TENNANT_ID="8f719188-a40b-43f2-bb96-56e28ba1dc53"
-@mcp.tool()
-async def get_bearer_token(tenant_id: str, api_key: str) -> str:
-    """
-    Retrieves a bearer token using the tenant_id and api_key.
-    
-    Returns:
-        A string containing the token, or a string starting with "Error" if token retrieval fails.
-    """
-    logger.info("Tool get_bearer_token called with tenant_id: %s and api_key: %s", tenant_id, api_key)
-    path = f"/multitenancy/tenant/{tenant_id}/token"
-    payload = {"api_key": api_key}
-    result = await http_request("post", path, payload=payload)
+
+async def get_bearer_token() -> str:
+    logger.info("Tool get_bearer_token called with TENANT_ID: %s and API_KEY: %s", TENANT_ID, API_KEY)
+    if not TENANT_ID or not API_KEY:
+        logger.error("TENANT_ID or API_KEY not set")
+        return "Error: TENANT_ID or API_KEY is missing"
+
+    path = f"/multitenancy/tenant/{TENANT_ID}/token"
+    payload = {
+        "api_key": API_KEY
+    }
+    headers = {
+        "Content-Type": "application/json"
+    }
+
+    result = await http_request("post", path, payload=payload, headers=headers)
     token = result.get("token", "")
     if not token:
         logger.error("Failed to retrieve token: %s", result)
         return "Error: Unable to retrieve token"
-    logger.info("get_bearer_token successfully retrieved token.")
+    logger.info("Successfully retrieved token.")
     return token
 
 @mcp.tool()
-async def get_tenant_details(token: str) -> str:
+async def get_tenant_details() -> str:
     """
     Retrieves tenant details using the provided bearer token.
     
     Returns:
         A JSON-formatted string representing tenant details.
     """
+
+    token = await get_bearer_token()
+
     logger.info("Tool get_tenant_details called with token: %s", token)
     headers = {"Authorization": f"Bearer {token}"}
     result = await http_request("get", "/tenant", headers=headers)

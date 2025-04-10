@@ -171,9 +171,37 @@ async def process_query(
 # -----------------------------------------------------------------------------
 # TESTS
 # -----------------------------------------------------------------------------
+@pytest.mark.asyncio
+async def test_get_tenant_status(llama_model, persona):
+    """
+    Another example test that uses the separate system persona and user question.
+    """
+    server_params = StdioServerParameters(command="python", args=["../mcp_tools/traction_api_tool.py"])
+
+    async with stdio_client(server_params) as (read, write):
+        async with ClientSession(read, write) as session:
+            await session.initialize()
+            assert session is not None
+
+            tools = await load_mcp_tools(session)
+            assert isinstance(tools, list)
+            assert len(tools) > 0
+
+            agent = create_react_agent(llama_model, tools)
+            assert agent is not None
+
+            question = (
+                "Could you please get me a summary of details about my tenant? \n"
+            )
+            response = await process_query(query=question, agent=agent, persona=persona)
+
+            assert isinstance(response, dict)
+            assert "messages" in response
+            assert len(response["messages"]) > 0
+
 
 @pytest.mark.asyncio
-async def test_get_bearer_token(llama_model, persona):
+async def test_list_connections(qwq_model, persona):
     """
     Example test that uses a separate 'persona' system message and a 'query' user message.
     """
@@ -191,14 +219,12 @@ async def test_get_bearer_token(llama_model, persona):
             assert len(tools) > 0
 
             # Step 3: Create the agent
-            agent = create_react_agent(llama_model, tools)
+            agent = create_react_agent(qwq_model, tools)
             assert agent is not None
 
             # Step 4: Provide persona as a system message, question as user
             question = (
-                "Could you please get me a bearer token?\n"
-                "My tenant ID is 8f719188-a40b-43f2-bb96-56e28ba1dc53\n"
-                "My API key is fd34f6365cef4ae0942e9d847bd22e96."
+                "Could you please list my active connections?\n"
             )
             response = await process_query(query=question, agent=agent, persona=persona)
 
@@ -207,36 +233,39 @@ async def test_get_bearer_token(llama_model, persona):
             assert "messages" in response
             assert len(response["messages"]) > 0
 
-
 @pytest.mark.asyncio
-async def test_get_tenant_status(qwq_model, persona):
+async def test_oob_invitation(qwq_model, persona):
     """
-    Another example test that uses the separate system persona and user question.
+    Example test that uses a separate 'persona' system message and a 'query' user message.
     """
     server_params = StdioServerParameters(command="python", args=["../mcp_tools/traction_api_tool.py"])
 
     async with stdio_client(server_params) as (read, write):
         async with ClientSession(read, write) as session:
+            # Step 1: Initialize the session
             await session.initialize()
             assert session is not None
 
+            # Step 2: Load tools
             tools = await load_mcp_tools(session)
             assert isinstance(tools, list)
             assert len(tools) > 0
 
+            # Step 3: Create the agent
             agent = create_react_agent(qwq_model, tools)
             assert agent is not None
 
+            # Step 4: Provide persona as a system message, question as user
             question = (
-                "Could you please get me a summary of details about my tenant? \n"
-                "My tenant ID is 8f719188-a40b-43f2-bb96-56e28ba1dc53\n"
-                "My API key is fd34f6365cef4ae0942e9d847bd22e96."
+                "Could you create an out of band SSI agent invitation for my friend Bob?\n"
             )
             response = await process_query(query=question, agent=agent, persona=persona)
 
+            # Step 5: Basic assertions
             assert isinstance(response, dict)
             assert "messages" in response
             assert len(response["messages"]) > 0
+
 
 
 if __name__ == "__main__":

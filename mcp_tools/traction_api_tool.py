@@ -99,7 +99,6 @@ async def get_tenant_details() -> str:
 
 @mcp.tool()
 async def list_connections(
-    auth_token: str,
     alias: str = None,
     connection_protocol: str = None,
     invitation_key: str = None,
@@ -116,7 +115,6 @@ async def list_connections(
     Query agent-to-agent connections using the /connections endpoint.
 
     Args:
-        auth_token: Bearer token for API access.
         alias: Optional alias filter.
         connection_protocol: Optional connection protocol filter.
         invitation_key: Optional invitation key filter.
@@ -134,7 +132,7 @@ async def list_connections(
     """
     logger.info("Tool list_connections called")
 
-    headers = {"Authorization": f"Bearer {auth_token}"}
+    headers = {"Authorization": f"Bearer {await get_bearer_token()}"}
 
     params = {
         "alias": alias,
@@ -158,7 +156,6 @@ async def list_connections(
 
 @mcp.tool()
 async def get_created_schemas(
-    auth_token: str,
     schema_id: str = None,
     schema_issuer_did: str = None,
     schema_name: str = None,
@@ -168,7 +165,6 @@ async def get_created_schemas(
     Retrieve schemas created by this agent using the /schemas/created endpoint.
 
     Args:
-        auth_token: Bearer token for API access.
         schema_id: Optional filter by full schema ID.
         schema_issuer_did: Optional filter by issuer DID.
         schema_name: Optional filter by schema name.
@@ -179,7 +175,7 @@ async def get_created_schemas(
     """
     logger.info("Tool get_created_schemas called")
 
-    headers = {"Authorization": f"Bearer {auth_token}"}
+    headers = {"Authorization": f"Bearer {await get_bearer_token()}"}
     params = {
         "schema_id": schema_id,
         "schema_issuer_did": schema_issuer_did,
@@ -195,7 +191,6 @@ async def get_created_schemas(
 
 @mcp.tool()
 async def create_out_of_band_invitation(
-    auth_token: str,
     alias: str = "Default Alias",
     handshake: bool = True,
     metadata: dict = None,
@@ -208,7 +203,6 @@ async def create_out_of_band_invitation(
     This implementation follows the Aries RFC 0434 guidelines for out‑of‑band protocols.
     
     Args:
-        auth_token: Bearer token to be used in the Authorization header.
         alias: An optional alias for the invitation.
         handshake: Determines whether to include handshake protocols.
         metadata: Additional metadata to include in the invitation.
@@ -219,8 +213,8 @@ async def create_out_of_band_invitation(
         A JSON-formatted string representing the invitation or an error message.
     """
     logger.info(
-        "Tool create_out_of_band_invitation called with auth_token: %s, alias: %s, handshake: %s, metadata: %s, use_public_did: %s, my_label: %s",
-         auth_token, alias, handshake, metadata, use_public_did, my_label
+        "Tool create_out_of_band_invitation called with API_KEY: %s, alias: %s, handshake: %s, metadata: %s, use_public_did: %s, my_label: %s",
+         API_KEY, alias, handshake, metadata, use_public_did, my_label
     )
     
     # Build the invitation payload based on RFC 0434:
@@ -237,10 +231,9 @@ async def create_out_of_band_invitation(
         payload["metadata"] = metadata
 
     # Set headers including the authorization and proper content type.
-    headers = {
-        "Authorization": f"Bearer {auth_token}",
-        "Content-Type": "application/json"
-    }
+
+    headers = {"Authorization": f"Bearer {await get_bearer_token()}"}
+
     path = "/out-of-band/create-invitation"
     result = await http_request("post", path, payload=payload, headers=headers)
     
@@ -269,7 +262,6 @@ async def create_out_of_band_invitation(
 
 @mcp.tool()
 async def create_schema(
-    auth_token: str,
     attributes: list,
     schema_name: str,
     schema_version: str,
@@ -280,7 +272,6 @@ async def create_schema(
     Create and send a schema to the ledger via the /schemas endpoint.
 
     Args:
-        auth_token: Bearer token for API access.
         attributes: List of schema attribute names.
         schema_name: Name of the schema.
         schema_version: Version of the schema.
@@ -292,7 +283,7 @@ async def create_schema(
     """
     logger.info("Tool create_schema called with schema_name=%s version=%s", schema_name, schema_version)
 
-    headers = {"Authorization": f"Bearer {auth_token}"}
+    headers = {"Authorization": f"Bearer {await get_bearer_token()}"}
     payload = {
         "attributes": attributes,
         "schema_name": schema_name,
@@ -312,12 +303,12 @@ async def create_schema(
     return json.dumps(result, indent=2)
 
 @mcp.tool()
-async def get_schema_by_id(auth_token: str, schema_id: str) -> str:
+async def get_schema_by_id(schema_id: str) -> str:
     """
     Retrieve a schema definition from the ledger by schema_id.
 
     Args:
-        auth_token: Bearer token for API access.
+        API_KEY: Bearer token for API access.
         schema_id: Fully-qualified schema ID (e.g., DID:2:name:version).
 
     Returns:
@@ -325,7 +316,7 @@ async def get_schema_by_id(auth_token: str, schema_id: str) -> str:
     """
     logger.info("Tool get_schema_by_id called with schema_id=%s", schema_id)
 
-    headers = {"Authorization": f"Bearer {auth_token}"}
+    headers = {"Authorization": f"Bearer {await get_bearer_token()}"}
     encoded_schema_id = schema_id.replace(":", "%3A")  # Optional: manual encoding
 
     path = f"/schemas/{encoded_schema_id}"
@@ -335,7 +326,6 @@ async def get_schema_by_id(auth_token: str, schema_id: str) -> str:
 
 @mcp.tool()
 async def create_credential_definition(
-    auth_token: str,
     schema_id: str,
     support_revocation: bool,
     tag: str = "default",
@@ -347,7 +337,6 @@ async def create_credential_definition(
     Create and send a credential definition to the ledger.
 
     Args:
-        auth_token: Bearer token for API access.
         schema_id: ID of the schema to base the credential definition on.
         support_revocation: Whether the credential supports revocation.
         tag: Optional tag name for the definition (default "default").
@@ -360,7 +349,7 @@ async def create_credential_definition(
     """
     logger.info("Tool create_credential_definition called with schema_id=%s", schema_id)
 
-    headers = {"Authorization": f"Bearer {auth_token}"}
+    headers = {"Authorization": f"Bearer {await get_bearer_token()}"}
     payload = {
         "schema_id": schema_id,
         "support_revocation": support_revocation,

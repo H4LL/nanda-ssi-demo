@@ -217,7 +217,7 @@ async def test_get_tenant_status(qwq_model, persona):
     
     cite_pytest_asyncio_doc
     """
-    server_params = StdioServerParameters(command="python", args=["../mcp_tools/traction_api_tool.py"])
+    server_params = StdioServerParameters(command="python", args=["../tools/traction_api.py"])
     async with stdio_client(server_params) as (read, write):
         async with ClientSession(read, write) as session:
             await session.initialize()
@@ -236,7 +236,7 @@ async def test_list_connections(qwq_model, persona):
     
     cite_pytest_asyncio_doc
     """
-    server_params = StdioServerParameters(command="python", args=["../mcp_tools/traction_api_tool.py"])
+    server_params = StdioServerParameters(command="python", args=["../tools/traction_api.py"])
     async with stdio_client(server_params) as (read, write):
         async with ClientSession(read, write) as session:
             await session.initialize()
@@ -255,7 +255,7 @@ async def test_oob_invitation(qwq_model, persona):
     
     cite_pytest_asyncio_doc
     """
-    server_params = StdioServerParameters(command="python", args=["../mcp_tools/traction_api_tool.py"])
+    server_params = StdioServerParameters(command="python", args=["../tools/traction_api.py"])
     async with stdio_client(server_params) as (read, write):
         async with ClientSession(read, write) as session:
             await session.initialize()
@@ -274,7 +274,7 @@ async def test_scheme_creation(qwq_model, persona):
     
     cite_pytest_asyncio_doc
     """
-    server_params = StdioServerParameters(command="python", args=["../mcp_tools/traction_api_tool.py"])
+    server_params = StdioServerParameters(command="python", args=["../tools/traction_api.py"])
     async with stdio_client(server_params) as (read, write):
         async with ClientSession(read, write) as session:
             await session.initialize()

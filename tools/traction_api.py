@@ -106,7 +106,7 @@ async def list_connections(
     limit: int = 100,
     my_did: str = None,
     offset: int = 0,
-    state: str = None,
+    # state: str = active,
     their_did: str = None,
     their_public_did: str = None,
     their_role: str = None
@@ -122,7 +122,6 @@ async def list_connections(
         limit: Number of results to return (default: 100).
         my_did: Filter by my DID.
         offset: Pagination offset (default: 0).
-        state: Filter by connection state.
         their_did: Filter by their DID.
         their_public_did: Filter by their public DID.
         their_role: Filter by their role.
@@ -142,7 +141,7 @@ async def list_connections(
         "limit": limit,
         "my_did": my_did,
         "offset": offset,
-        "state": state,
+        "state": "active",
         "their_did": their_did,
         "their_public_did": their_public_did,
         "their_role": their_role
@@ -369,6 +368,157 @@ async def create_credential_definition(
 
     result = await http_request("post", f"/credential-definitions{query_string}", payload=payload, headers=headers)
     return json.dumps(result, indent=2)
+
+
+@mcp.tool()
+async def send_basic_message(conn_id: str, content: str) -> str:
+    """
+    Send a message to a connection.
+
+    Args:
+        conn_id: The connection ID to which the message will be sent.
+        content: The text content of the message.
+
+    Returns:
+        A JSON-formatted string with the response.
+    """
+    logger.info("Tool send_basic_message called with conn_id=%s, content=%s", conn_id, content)
+
+    headers = {"Authorization": f"Bearer {await get_bearer_token()}"}
+    payload = {"content": content}
+
+    result = await http_request(
+        "post",
+        f"/connections/{conn_id}/send-message",
+        payload=payload,
+        headers=headers
+    )
+    return json.dumps(result, indent=2)
+
+@mcp.tool()
+async def query_basic_messages(
+    connection_id: str = None,
+    state: str = None  # 'sent' or 'received'
+) -> str:
+    """
+    Query basic messages from all agents (basicmessage_storage v1_0 plugin).
+
+    Args:
+        connection_id: Optional filter to limit messages to a specific connection ID.
+        state: Optional filter for message state: 'sent' or 'received'.
+
+    Returns:
+        A JSON-formatted string with the list of basic messages.
+    """
+    logger.info("Tool query_basic_messages called with connection_id=%s, state=%s", connection_id, state)
+
+    headers = {"Authorization": f"Bearer {await get_bearer_token()}"}
+    params = {}
+
+    if connection_id:
+        params["connection_id"] = connection_id
+    if state:
+        params["state"] = state
+
+    result = await http_request("get", "/basicmessages", payload=params, headers=headers)
+    return json.dumps(result, indent=2)
+
+@mcp.tool()
+async def get_created_credential_definitions(
+    cred_def_id: str = None,
+    issuer_id: str = None,
+    schema_id: str = None,
+    schema_issuer_did: str = None,
+    schema_name: str = None,
+    schema_version: str = None
+) -> str:
+    """
+    Retrieve credential definitions created by this agent.
+
+    Args:
+        cred_def_id: Optional filter by credential definition ID.
+        issuer_id: Optional filter by issuer DID.
+        schema_id: Optional filter by schema ID.
+        schema_issuer_did: Optional filter by schema issuer DID.
+        schema_name: Optional filter by schema name.
+        schema_version: Optional filter by schema version.
+
+    Returns:
+        A JSON-formatted string with the list of credential definition IDs.
+    """
+    logger.info("Tool get_created_credential_definitions called")
+
+    headers = {"Authorization": f"Bearer {await get_bearer_token()}"}
+    params = {
+        "cred_def_id": cred_def_id,
+        "issuer_id": issuer_id,
+        "schema_id": schema_id,
+        "schema_issuer_did": schema_issuer_did,
+        "schema_name": schema_name,
+        "schema_version": schema_version
+    }
+
+    # Clean up None values to avoid invalid query params
+    query_params = {k: v for k, v in params.items() if v is not None}
+
+    result = await http_request("get", "/credential-definitions/created", payload=query_params, headers=headers)
+    return json.dumps(result, indent=2)
+
+@mcp.tool()
+async def issue_credential_v2(
+    connection_id: str,
+    cred_def_id: str,
+    schema_id: str,
+    attributes: dict,
+    auto_remove: bool = True,
+    comment: str = "Issuing credential"
+) -> str:
+    """
+    Issue a verifiable credential using the issue-credential-2.0/send endpoint.
+
+    Args:
+        connection_id: The connection ID to send the credential to.
+        cred_def_id: Credential definition ID.
+        schema_id: Schema ID the credential is based on.
+        attributes: Dictionary of attribute names and values.
+        auto_remove: Whether to remove the exchange record after issuance (default True).
+        comment: Optional comment for context.
+
+    Returns:
+        JSON-formatted string with the response or error.
+    """
+    logger.info("Tool issue_credential_v2 called with connection_id=%s", connection_id)
+
+    headers = {"Authorization": f"Bearer {await get_bearer_token()}"}
+
+    credential_preview = {
+        "@type": "issue-credential/2.0/credential-preview",
+        "attributes": [
+            {
+                "name": k,
+                "value": v,
+                "mime-type": "text/plain"  # Adjust as needed
+            } for k, v in attributes.items()
+        ]
+    }
+
+    payload = {
+        "auto_remove": auto_remove,
+        "comment": comment,
+        "connection_id": connection_id,
+        "credential_preview": credential_preview,
+        "filter": {
+            "indy": {
+                "cred_def_id": cred_def_id,
+                "schema_id": schema_id
+            }
+        }
+    }
+
+    result = await http_request("post", "/issue-credential-2.0/send", payload=payload, headers=headers)
+    return json.dumps(result, indent=2)
+
+
 
 if __name__ == '__main__':
     # Run the MCP server over stdio.

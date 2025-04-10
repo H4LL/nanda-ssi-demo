@@ -19,6 +19,7 @@ from mcp.client.stdio import stdio_client
 from langchain_mcp_adapters.tools import load_mcp_tools
 from langgraph.prebuilt import create_react_agent
 from langchain_ollama import ChatOllama
+from langchain.memory import ConversationBufferMemory  # <-- New import
 
 # Suppress specific deprecation warnings (see cite_python_warnings_doc, cite_pydantic_doc)
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="pydantic.v1.typing")
@@ -35,7 +36,7 @@ console = Console()
 @pytest.fixture
 def persona() -> str:
     """
-    Provide a helpful customer support assistant persona. You facilitate access to a users ID Agent tenancy in a Xanadu Traction Custodial Wallet Service. Remember that if you seee any tool output you see is there to help you answer the user's questions. It may just be that you need to relay the information form tool calls if you see them. Explain results as if to a completely non-technical person.
+    Provide a helpful customer support assistant persona. You facilitate access to a users ID Agent tenancy in a Xanadu Traction Custodial Wallet Service. Remember that if you seee any tool output you see is there to help you answer the user's questions. Optional parameters in tools help you filter search results. Remember that you can query tools to find the information you need.
         """
     return (
         "You are a helpful customer support assistant, always greet the user politely. "
@@ -116,23 +117,49 @@ def print_chain_graph(cag: List[Dict[str, Any]]) -> None:
             node.add(f"[yellow]Output:[/yellow] {tool_out}")
     console.print(tree)
 
+def format_conversation_history(history: Any) -> str:
+    """
+    Takes a conversation history (which may be a list of dicts or objects)
+    and returns a nicely formatted string.
+    """
+    formatted_messages = []
+
+    # Check if history is a list; if not, try to convert it to a list
+    if not isinstance(history, list):
+        history = [history]
+
+    for msg in history:
+        # If msg is a dict, use .get(...)
+        if isinstance(msg, dict):
+            role = msg.get("role", "unknown").capitalize()
+            content = msg.get("content", "")
+        # Otherwise, assume it has attributes (e.g., a HumanMessage object)
+        elif hasattr(msg, "role") and hasattr(msg, "content"):
+            role = getattr(msg, "role", "unknown")
+            role = str(role).capitalize()
+            content = getattr(msg, "content", "")
+        else:
+            # Fallback: just use the string representation
+            role = "unknown"
+            content = str(msg)
+        # Append the formatted line
+        formatted_messages.append(f"{role}: {content}")
+    return "\n".join(formatted_messages)
+
 
 # -----------------------------------------------------------------------------
 # Main Agent Query Processor Function
 # -----------------------------------------------------------------------------
-async def process_query(query: str, agent: Any, persona: str = None) -> Dict[str, Any]:
+
+async def process_query(
+    query: str, 
+    agent: Any, 
+    persona: str = None, 
+    memory: ConversationBufferMemory = None
+) -> Dict[str, Any]:
     """
-    Process a query by invoking the agent and displaying the raw response, 
-    events, compute graph, and AI messages.
-
-
-    Parameters:
-        query (str): The human query to process.
-        agent (Any): The AI agent to invoke (should support `ainvoke`).
-        persona (str, optional): A persona system prompt to set context.
-        
-    Returns:
-        A dictionary containing the agent's safe response.
+    Process a query by invoking the agent and displaying the raw response,
+    updating the conversation memory.
     """
     current_time = datetime.now().strftime("%H:%M:%S")
     console.rule(f"[bold green]{current_time} - Query: {query}")
@@ -141,8 +168,18 @@ async def process_query(query: str, agent: Any, persona: str = None) -> Dict[str
     messages: List[Dict[str, str]] = []
     if persona:
         messages.append({"role": "system", "content": persona})
+    
+    # If memory is provided, load and format the conversation history.
+    if memory is not None:
+        memory_vars = memory.load_memory_variables({})
+        conv_history = memory_vars.get("history", "")
+        # Use the utility to format the history.
+        if conv_history:
+            formatted_history = format_conversation_history(conv_history)
+            messages.append({"role": "system", "content": f"Conversation history:\n{formatted_history}"})
+    
     messages.append({"role": "user", "content": query})
-
+    
     try:
         response = await agent.ainvoke({"messages": messages})
     except Exception as error:
@@ -153,18 +190,16 @@ async def process_query(query: str, agent: Any, persona: str = None) -> Dict[str
     console.print("\n[bold underline]Raw Response:[/bold underline]")
     console.print_json(data=safe_response)
 
-    # Print any available events from the agent.
+    # (Display additional details here: events, compute graph, tool calls, etc.)
     if "events" in safe_response:
         console.print("\n[bold underline]MCP Agent Events:[/bold underline]")
         for event in safe_response["events"]:
             console.print(f"[blue]{event}[/blue]")
 
-    # Display the compute graph, if available.
     if "cag" in safe_response:
         console.print("\n[bold underline]Compute Graph (Chain-of-Actions):[/bold underline]")
         print_chain_graph(safe_response["cag"])
 
-    # Display tool calls, falling back to extracting from messages.
     if "tool_calls" in safe_response:
         console.print("\n[bold underline]Tools Accessed:[/bold underline]")
         print_tool_calls(safe_response["tool_calls"])
@@ -177,32 +212,26 @@ async def process_query(query: str, agent: Any, persona: str = None) -> Dict[str
             console.print("\n[bold underline]Extracted Tool Calls from messages:[/bold underline]")
             print_tool_calls(tool_msgs)
 
-    # Process and display AI messages.
+    # Process and display the AI messages.
     ai_messages = safe_response.get("messages", [])
     console.print("\n[bold blue]AI Output:[/bold blue]")
     assistant_count = 0
+    assistant_output = ""
     for msg in ai_messages:
-        # Distinguish between dict and plain string responses.
         if isinstance(msg, dict):
+            # Use our conditional attribute access for safety
             role = msg.get("role", "assistant")
             content = msg.get("content", "")
+        elif hasattr(msg, "role") and hasattr(msg, "content"):
+            role = getattr(msg, "role", "assistant")
+            content = getattr(msg, "content", "")
         else:
             content = msg.strip()
+            role = "assistant"
             if not content or (persona and content == persona.strip()) or content == query.strip():
                 continue
-            role = "assistant"
 
-        # Detect valid JSON outputs and reclassify as a tool output if needed.
-        content_stripped = content.strip()
-        if ((content_stripped.startswith("{") and content_stripped.endswith("}")) or
-            (content_stripped.startswith("[") and content_stripped.endswith("]"))):
-            try:
-                json.loads(content_stripped)
-                role = "tool"
-            except Exception:
-                pass
-
-        # Extract and display any internal <think> blocks then remove them.
+        # Remove any <think> blocks and display them separately.
         think_blocks = re.findall(r"<think>(.*?)</think>", content, flags=re.DOTALL)
         if think_blocks:
             for think_block in think_blocks:
@@ -210,291 +239,272 @@ async def process_query(query: str, agent: Any, persona: str = None) -> Dict[str
                 if cleaned_think:
                     console.print(
                         Panel.fit(
-                            f"[italic dim]{cleaned_think}[/]",
+                            f"[italic dim]{cleaned_think}[/]", 
                             title="🧠 Think", border_style=""
                         )
                     )
             content = re.sub(r"<think>.*?</think>", "", content, flags=re.DOTALL).strip()
-
-        # Print the final message with appropriate formatting.
+        
         if role == "tool":
             console.print(Panel.fit(content, title="🛠️ Tool Output", border_style="magenta"))
         elif content:
             assistant_count += 1
+            assistant_output += content + "\n"
             console.print(
                 Panel.fit(Text.from_markup(content), title=f"AI Message {assistant_count}", border_style="bright_blue")
             )
-
+    
+    # Update conversation memory with the turn's input and output.
+    if memory is not None:
+        memory.save_context({"input": query}, {"output": assistant_output})
+        
     return safe_response
-
 
 # -----------------------------------------------------------------------------
 # Asynchronous Tests using pytest and pytest_asyncio
 # -----------------------------------------------------------------------------
 # @pytest.mark.asyncio
-# async def test_get_tenant_status(qwq_model: ChatOllama, persona: str) -> None:
+# async def test_get_tenant_status(llama_model: ChatOllama, persona: str) -> None:
 #     """
 #     Test to verify that a summary of tenant details can be retrieved.
-
 #     """
 #     server_params = StdioServerParameters(command="python", args=["../tools/traction_api.py"])
+#     memory = ConversationBufferMemory(memory_key="history", return_messages=True)
 #     async with stdio_client(server_params) as (read, write):
 #         async with ClientSession(read, write) as session:
 #             await session.initialize()
 #             tools = await load_mcp_tools(session)
-#             agent = create_react_agent(qwq_model, tools)
-#             question = "Could you please get me a summary of details about my tenant? \n"
-#             response = await process_query(query=question, agent=agent, persona=persona)
+#             agent = create_react_agent(llama_model, tools)
+#             question = "Could you please get me a summary of details about my tenancy? \n"
+#             response = await process_query(query=question, agent=agent, persona=persona, memory=memory)
 #             assert isinstance(response, dict)
+#             # You may also check that the history block is present:
+#             formatted_history_found = any("Conversation history:" in msg for msg in response.get("messages", []))
 #             assert "messages" in response
 #             assert len(response["messages"]) > 0
 
 
 # @pytest.mark.asyncio
-# async def test_list_connections(qwq_model: ChatOllama, persona: str) -> None:
+# async def test_list_connections(llama_model: ChatOllama, persona: str) -> None:
 #     """
 #     Test to verify that active connections are listed.
-    
 #     """
 #     server_params = StdioServerParameters(command="python", args=["../tools/traction_api.py"])
+#     memory = ConversationBufferMemory(memory_key="history", return_messages=True)
 #     async with stdio_client(server_params) as (read, write):
 #         async with ClientSession(read, write) as session:
 #             await session.initialize()
 #             tools = await load_mcp_tools(session)
-#             agent = create_react_agent(qwq_model, tools)
+#             agent = create_react_agent(llama_model, tools)
 #             question = "Could you please list my active connections?\n"
-#             response = await process_query(query=question, agent=agent, persona=persona)
+#             response = await process_query(query=question, agent=agent, persona=persona, memory=memory)
 #             assert isinstance(response, dict)
 #             assert "messages" in response
 #             assert len(response["messages"]) > 0
 
 
 # @pytest.mark.asyncio
-# async def test_oob_invitation(qwq_model: ChatOllama, persona: str) -> None:
+# async def test_oob_invitation(llama_model: ChatOllama, persona: str) -> None:
 #     """
 #     Test to verify the creation of an out-of-band SSI agent invitation.
-    
 #     """
 #     server_params = StdioServerParameters(command="python", args=["../tools/traction_api.py"])
+#     memory = ConversationBufferMemory(memory_key="history", return_messages=True)
 #     async with stdio_client(server_params) as (read, write):
 #         async with ClientSession(read, write) as session:
 #             await session.initialize()
 #             tools = await load_mcp_tools(session)
-#             agent = create_react_agent(qwq_model, tools)
+#             agent = create_react_agent(llama_model, tools)
 #             question = "Could you create an out of band SSI agent invitation for my friend Bob?\n"
-#             response = await process_query(query=question, agent=agent, persona=persona)
+#             response = await process_query(query=question, agent=agent, persona=persona, memory=memory)
 #             assert isinstance(response, dict)
 #             assert "messages" in response
 #             assert len(response["messages"]) > 0
 
 
 # @pytest.mark.asyncio
-# async def test_scheme_creation(qwq_model: ChatOllama, persona: str) -> None:
+# async def test_scheme_creation(llama_model: ChatOllama, persona: str) -> None:
 #     """
 #     Test to verify the creation of a new NANDA scheme.
-    
 #     """
 #     server_params = StdioServerParameters(command="python", args=["../tools/traction_api.py"])
+#     memory = ConversationBufferMemory(memory_key="history", return_messages=True)
 #     async with stdio_client(server_params) as (read, write):
 #         async with ClientSession(read, write) as session:
 #             await session.initialize()
 #             tools = await load_mcp_tools(session)
-#             agent = create_react_agent(qwq_model, tools)
+#             agent = create_react_agent(llama_model, tools)
 #             question = (
 #                 "I'd like to create a new NANDA scheme with a single binary field which will allow "
 #                 "people to verify that they were at the hackathon. The scheme version is '1.0' and "
 #                 "the exact attribute name that I want is 'hackathon_attendance'. If the scheme already exists then that's fine, mission accomplished. \n"
 #             )
-#             response = await process_query(query=question, agent=agent, persona=persona)
+#             response = await process_query(query=question, agent=agent, persona=persona, memory=memory)
 #             assert isinstance(response, dict)
 #             assert "messages" in response
 #             assert len(response["messages"]) > 0
 
+
 # @pytest.mark.asyncio
-# async def test_scheme_creation(qwq_model: ChatOllama, persona: str) -> None:
+# async def test_list_schemes(llama_model: ChatOllama, persona: str) -> None:
 #     """
-#     Test to verify the creation of a new NANDA scheme.
-    
+#     Test to verify which schemes have been created.
 #     """
 #     server_params = StdioServerParameters(command="python", args=["../tools/traction_api.py"])
+#     memory = ConversationBufferMemory(memory_key="history", return_messages=True)
 #     async with stdio_client(server_params) as (read, write):
 #         async with ClientSession(read, write) as session:
 #             await session.initialize()
 #             tools = await load_mcp_tools(session)
-#             agent = create_react_agent(qwq_model, tools)
-#             question = (
-#                 "I'd like to create a new NANDA scheme with a single binary field which will allow "
-#                 "people to verify that they were at the hackathon. The scheme version is '1.0' and "
-#                 "the exact attribute name that I want is 'hackathon_attendance'. If the scheme already exists then that's fine, mission accomplished. \n"
-#             )
-#             response = await process_query(query=question, agent=agent, persona=persona)
+#             agent = create_react_agent(llama_model, tools)
+#             question = "Which Schemes have I created? \n"
+#             response = await process_query(query=question, agent=agent, persona=persona, memory=memory)
 #             assert isinstance(response, dict)
 #             assert "messages" in response
 #             assert len(response["messages"]) > 0
 
-# @pytest.mark.asyncio
-# async def test_list_schemes(qwq_model: ChatOllama, persona: str) -> None:
-#     """
-#     Test to verify the creation of a new NANDA scheme.
-    
-#     """
-#     server_params = StdioServerParameters(command="python", args=["../tools/traction_api.py"])
-#     async with stdio_client(server_params) as (read, write):
-#         async with ClientSession(read, write) as session:
-#             await session.initialize()
-#             tools = await load_mcp_tools(session)
-#             agent = create_react_agent(qwq_model, tools)
-#             question = (
-#                 "Which Schemes have I created? \n"
-#             )
-#             response = await process_query(query=question, agent=agent, persona=persona)
-#             assert isinstance(response, dict)
-#             assert "messages" in response
-#             assert len(response["messages"]) > 0
 
 # @pytest.mark.asyncio
-# async def test_credential_creation(qwq_model: ChatOllama, persona: str) -> None:
+# async def test_credential_creation(llama_model: ChatOllama, persona: str) -> None:
 #     """
-#     Test to verify the creation of a new NANDA scheme.
-    
+#     Test to verify the creation of a new credential definition.
 #     """
 #     server_params = StdioServerParameters(command="python", args=["../tools/traction_api.py"])
+#     memory = ConversationBufferMemory(memory_key="history", return_messages=True)
 #     async with stdio_client(server_params) as (read, write):
 #         async with ClientSession(read, write) as session:
 #             await session.initialize()
 #             tools = await load_mcp_tools(session)
-#             agent = create_react_agent(qwq_model, tools)
+#             agent = create_react_agent(llama_model, tools)
 #             question = (
-#                 "I'd like to create a new credential defnition with the 'GeLsnrSj8Xofy6B9T5MMTi:2:NANDA:1.0' scheme."
+#                 "I'd like to create a new credential defnition with the 'GeLsnrSj8Xofy6B9T5MMTi:2:NANDA:1.0' scheme. "
 #                 "The credential definition tag should be 'NANDA Hackathon Attendence' "
 #                 "If the credential definition already exists then that's fine, mission accomplished. \n"
 #             )
-#             response = await process_query(query=question, agent=agent, persona=persona)
+#             response = await process_query(query=question, agent=agent, persona=persona, memory=memory)
 #             assert isinstance(response, dict)
 #             assert "messages" in response
 #             assert len(response["messages"]) > 0
 
 
 # @pytest.mark.asyncio
-# async def test_list_credentials(qwq_model: ChatOllama, persona: str) -> None:
+# async def test_list_credentials(llama_model: ChatOllama, persona: str) -> None:
 #     """
-#     Test to verify the creation of a new NANDA scheme.
-    
+#     Test to verify which credential definitions have been created.
 #     """
 #     server_params = StdioServerParameters(command="python", args=["../tools/traction_api.py"])
+#     memory = ConversationBufferMemory(memory_key="history", return_messages=True)
 #     async with stdio_client(server_params) as (read, write):
 #         async with ClientSession(read, write) as session:
 #             await session.initialize()
 #             tools = await load_mcp_tools(session)
-#             agent = create_react_agent(qwq_model, tools)
-#             question = (
-#                 "Which credential definitions have I created?\n"
-#             )
-#             response = await process_query(query=question, agent=agent, persona=persona)
+#             agent = create_react_agent(llama_model, tools)
+#             question = "Which credential definitions have I created?\n"
+#             response = await process_query(query=question, agent=agent, persona=persona, memory=memory)
 #             assert isinstance(response, dict)
 #             assert "messages" in response
 #             assert len(response["messages"]) > 0
 
 
 # @pytest.mark.asyncio
-# async def test_credential_offer(qwq_model: ChatOllama, persona: str) -> None:
+# async def test_credential_offer(llama_model: ChatOllama, persona: str) -> None:
 #     """
-#     Test to verify the creation of a new NANDA scheme.
-    
+#     Test to verify sending of a credential offer.
 #     """
 #     server_params = StdioServerParameters(command="python", args=["../tools/traction_api.py"])
+#     memory = ConversationBufferMemory(memory_key="history", return_messages=True)
 #     async with stdio_client(server_params) as (read, write):
 #         async with ClientSession(read, write) as session:
 #             await session.initialize()
 #             tools = await load_mcp_tools(session)
-#             agent = create_react_agent(qwq_model, tools)
+#             agent = create_react_agent(llama_model, tools)
 #             question = (
-#                 "I'd like you to send a credential offer to my connection with the alias 'Unit Test Invitation'. I'd like to send them one of the NANDA Hackathon Attendence credentials, mark them as having attended.\n"
+#                 "I'd like you to send a credential offer to my connection with the alias 'Unit Test Invitation'. "
+#                 "I'd like to send them one of the NANDA Hackathon Attendence credentials, mark them as having attended.\n"
 #             )
-#             response = await process_query(query=question, agent=agent, persona=persona)
+#             response = await process_query(query=question, agent=agent, persona=persona, memory=memory)
 #             assert isinstance(response, dict)
 #             assert "messages" in response
 #             assert len(response["messages"]) > 0
 
 
 # @pytest.mark.asyncio
-# async def test_send_message(qwq_model: ChatOllama, persona: str) -> None:
+# async def test_send_message(llama_model: ChatOllama, persona: str) -> None:
 #     """
-#     Test to verify the creation of a new NANDA scheme.
-    
+#     Test to verify sending a message to an active connection.
 #     """
 #     server_params = StdioServerParameters(command="python", args=["../tools/traction_api.py"])
+#     memory = ConversationBufferMemory(memory_key="history", return_messages=True)
 #     async with stdio_client(server_params) as (read, write):
 #         async with ClientSession(read, write) as session:
 #             await session.initialize()
 #             tools = await load_mcp_tools(session)
-#             agent = create_react_agent(qwq_model, tools)
+#             agent = create_react_agent(llama_model, tools)
+
 #             question = (
-#                 "Please send a message to my active connection. Their alias is 'Unit Test Invitation'. Say 'Hi Bob'"
+#                 "I want to send a message to the agent I'm connected to with the alias 'Unit Test Invitation'.\n"
+#                 "First, please look up the connection ID for this alias using the appropriate tool.\n"
+#                 "Then, send the message 'Hi Bob' to that connection.\n"
+#                 "Make sure to actually invoke the tool to send the message."
 #             )
-#             response = await process_query(query=question, agent=agent, persona=persona)
+
+#             response = await process_query(query=question, agent=agent, persona=persona, memory=memory)
 #             assert isinstance(response, dict)
 #             assert "messages" in response
 #             assert len(response["messages"]) > 0
 
-# @pytest.mark.asyncio
-# async def test_receive_message(qwq_model: ChatOllama, persona: str) -> None:
-#     """
-#     Test to verify the creation of a new NANDA scheme.
-    
-#     """
-#     server_params = StdioServerParameters(command="python", args=["../tools/traction_api.py"])
-#     async with stdio_client(server_params) as (read, write):
-#         async with ClientSession(read, write) as session:
-#             await session.initialize()
-#             tools = await load_mcp_tools(session)
-#             agent = create_react_agent(qwq_model, tools)
-#             question = (
-#                 "Please check for messages. Let me know who it was and what they said!"
-#             )
-#             response = await process_query(query=question, agent=agent, persona=persona)
-#             assert isinstance(response, dict)
-#             assert "messages" in response
-#             assert len(response["messages"]) > 0
 
 @pytest.mark.asyncio
-async def test_respond_in_three_prompts(qwq_model: ChatOllama, persona: str) -> None:
+async def test_receive_message(llama_model: ChatOllama, persona: str) -> None:
     """
-    Multi-step test:
-    1. Ask what the last message we received was.
-    2. List all messages from that sender.
-    3. Respond based on full conversation history.
+    Test to verify receiving of a message.
     """
     server_params = StdioServerParameters(command="python", args=["../tools/traction_api.py"])
-    
+    memory = ConversationBufferMemory(memory_key="history", return_messages=True)
     async with stdio_client(server_params) as (read, write):
         async with ClientSession(read, write) as session:
             await session.initialize()
             tools = await load_mcp_tools(session)
-            agent = create_react_agent(qwq_model, tools)
+            agent = create_react_agent(llama_model, tools)
+            question = "Please check for messages. Let me know who it was and what they said!"
+            response = await process_query(query=question, agent=agent, persona=persona, memory=memory)
+            assert isinstance(response, dict)
+            assert "messages" in response
+            assert len(response["messages"]) > 0
 
-            # Step 1: Ask what the last received message was
-            step1_question = "What was the last message we received? Who sent it?"
-            step1_response = await process_query(query=step1_question, agent=agent, persona=persona)
-            assert isinstance(step1_response, dict)
-            # assert "last_message" in step1_response
-            # assert "sender" in step1_response
-            # sender = step1_response["sender"]
-
-            # Step 2: List all messages from that sender
-            step2_question = f"List all messages we've received from that person. \n <context>{step1_response}<context>\n "
-            step2_response = await process_query(query=step2_question, agent=agent, persona=persona)
-            assert isinstance(step2_response, dict)
-            # assert "messages" in step2_response
-            # assert isinstance(step2_response["messages"], list)
-            # assert len(step2_response["messages"]) > 0
-
-            # Step 3: Send an appropriate response based on the conversation history
-            step3_question = f"Based on this conversation history, send the appropriate reply to that person. Feel free to choose whatever response is appropriate to send as a message \n<context>{step1_response} {step2_response}</context>\n"
-            step3_response = await process_query(query=step3_question, agent=agent, persona=persona)
-            assert isinstance(step3_response, dict)
-            # assert "reply" in step3_response
-            # assert isinstance(step3_response["reply"], str)
+# @pytest.mark.asyncio
+# async def test_respond_in_three_prompts(llama_model: ChatOllama, persona: str) -> None:
+#     """
+#     Multi-step test with structured conversation memory:
+#     1. Ask what the last message we received was.
+#     2. List all messages from that sender.
+#     3. Respond based on the full conversation history.
+#     """
+#     server_params = StdioServerParameters(command="python", args=["../tools/traction_api.py"])
+    
+#     # Create the conversation memory instance.
+#     memory = ConversationBufferMemory(memory_key="history", return_messages=True)
+    
+#     async with stdio_client(server_params) as (read, write):
+#         async with ClientSession(read, write) as session:
+#             await session.initialize()
+#             tools = await load_mcp_tools(session)
+#             agent = create_react_agent(llama_model, tools)
+            
+#             # Step 1: Ask what the last received message was.
+#             step1_question = "What was the last message we received? Who sent it?"
+#             step1_response = await process_query(query=step1_question, agent=agent, persona=persona, memory=memory)
+#             assert isinstance(step1_response, dict)
+            
+#             # Step 2: List all messages from that sender.
+#             step2_question = "List all messages we've received from that person."
+#             step2_response = await process_query(query=step2_question, agent=agent, persona=persona, memory=memory)
+#             assert isinstance(step2_response, dict)
+            
+#             # Step 3: Send an appropriate response based on the conversation history.
+#             step3_question = "Based on the previous message, send the appropriate reply to that person."
+#             step3_response = await process_query(query=step3_question, agent=agent, persona=persona, memory=memory)
+#             assert isinstance(step3_response, dict)
 
 
 

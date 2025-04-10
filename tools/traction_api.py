@@ -98,7 +98,7 @@ async def get_tenant_details() -> str:
     return json.dumps(result, indent=2)
 
 @mcp.tool()
-async def list_connections(
+async def query_connections(
     alias: str = None,
     connection_protocol: str = None,
     invitation_key: str = None,
@@ -189,7 +189,7 @@ async def get_created_schemas(
     return json.dumps(result, indent=2)
 
 @mcp.tool()
-async def create_out_of_band_invitation(
+async def create_out_of_band_connection_request(
     alias: str = "Default Alias",
     handshake: bool = True,
     metadata: dict = None,
@@ -371,59 +371,6 @@ async def create_credential_definition(
 
 
 @mcp.tool()
-async def send_basic_message(conn_id: str, content: str) -> str:
-    """
-    Send a message to a connection.
-
-    Args:
-        conn_id: The connection ID to which the message will be sent.
-        content: The text content of the message.
-
-    Returns:
-        A JSON-formatted string with the response.
-    """
-    logger.info("Tool send_basic_message called with conn_id=%s, content=%s", conn_id, content)
-
-    headers = {"Authorization": f"Bearer {await get_bearer_token()}"}
-    payload = {"content": content}
-
-    result = await http_request(
-        "post",
-        f"/connections/{conn_id}/send-message",
-        payload=payload,
-        headers=headers
-    )
-    return json.dumps(result, indent=2)
-
-@mcp.tool()
-async def query_basic_messages(
-    connection_id: str = None,
-    state: str = None  # 'sent' or 'received'
-) -> str:
-    """
-    Query basic messages from all agents (basicmessage_storage v1_0 plugin).
-
-    Args:
-        connection_id: Optional filter to limit messages to a specific connection ID.
-        state: Optional filter for message state: 'sent' or 'received'.
-
-    Returns:
-        A JSON-formatted string with the list of basic messages.
-    """
-    logger.info("Tool query_basic_messages called with connection_id=%s, state=%s", connection_id, state)
-
-    headers = {"Authorization": f"Bearer {await get_bearer_token()}"}
-    params = {}
-
-    if connection_id:
-        params["connection_id"] = connection_id
-    if state:
-        params["state"] = state
-
-    result = await http_request("get", "/basicmessages", payload=params, headers=headers)
-    return json.dumps(result, indent=2)
-
-@mcp.tool()
 async def get_created_credential_definitions(
     cred_def_id: str = None,
     issuer_id: str = None,
@@ -465,7 +412,7 @@ async def get_created_credential_definitions(
     return json.dumps(result, indent=2)
 
 @mcp.tool()
-async def issue_credential_v2(
+async def offer__verifiable_credential(
     connection_id: str,
     cred_def_id: str,
     schema_id: str,
@@ -517,6 +464,130 @@ async def issue_credential_v2(
 
     result = await http_request("post", "/issue-credential-2.0/send", payload=payload, headers=headers)
     return json.dumps(result, indent=2)
+
+@mcp.tool()
+async def query_basic_messages(
+    connection_id: str = None,
+    state: str = None
+) -> str:
+    """
+    Query basic messages from all agents (basicmessage_storage v1_0 plugin).
+
+    Args:
+        connection_id: (Optional) If provided, return messages only for this connection ID.
+        state: (Optional) Filter messages by 'sent' or 'received'.
+
+    Returns:
+        A JSON-formatted string containing the list of matching messages or an error message.
+    """
+    logger.info("Tool list_basic_messages called with connection_id=%s, state=%s", connection_id, state)
+
+    # Get your bearer token, needed for authorization
+    headers = {"Authorization": f"Bearer {await get_bearer_token()}"}
+    params = {}
+
+    # Only add the query params if they are not None
+    if connection_id:
+        params["connection_id"] = connection_id
+    if state:
+        params["state"] = state
+
+    # Make the GET request using your generic http_request utility
+    result = await http_request("get", "/basicmessages", payload=params, headers=headers)
+    return json.dumps(result, indent=2)
+
+@mcp.tool()
+async def send_message(
+    conn_id: str,
+    content: str = "Hello World!"
+) -> str:
+    """
+    Send a basic message to a specific connection via the
+    POST /connections/{conn_id}/send-message endpoint.
+
+    Args:
+        conn_id: The connection ID to which the message should be sent.
+        content: The text content of the message. Defaults to "Hello!" if none is given.
+
+    Returns:
+        A JSON-formatted string containing the response from the server, or an error.
+    """
+    logger.info("Tool post_basic_message called with conn_id=%s, content=%s", conn_id, content)
+
+    # Acquire a valid bearer token for authorization
+    headers = {"Authorization": f"Bearer {await get_bearer_token()}"}
+    
+    # Build the payload for sending a basic message
+    payload = {"content": content}
+
+    # Make the POST request using your generic http_request utility
+    result = await http_request(
+        "post",
+        f"/connections/{conn_id}/send-message",
+        payload=payload,
+        headers=headers
+    )
+
+    # Return a pretty-printed JSON result
+    return json.dumps(result, indent=2)
+
+import random
+
+# @mcp.tool()
+# async def send_proof_request(
+#     connection_id: str,
+#     name: str = "proof-request",
+#     version: str = "1.0",
+#     requested_attributes: dict = None,
+#     requested_predicates: dict = None,
+#     auto_verify: bool = False,
+#     comment: str = "",
+# ) -> str:
+#     """
+#     Send a free-form presentation request using the /present-proof-2.0/send-request endpoint.
+
+#     Args:
+#         connection_id: The connection ID to send the request to.
+#         name: Name of the proof request (default "proof-request").
+#         version: Version of the proof request format.
+#         requested_attributes: A dictionary of requested attributes.
+#         requested_predicates: A dictionary of requested predicates.
+#         auto_verify: Whether the presentation should be automatically verified.
+#         comment: Optional comment to include with the request.
+
+#     Returns:
+#         A JSON-formatted string containing the response from the server.
+#     """
+#     logger.info("Tool send_proof_request called with connection_id=%s", connection_id)
+
+#     headers = {"Authorization": f"Bearer {await get_bearer_token()}"}
+
+#     # Generate a secure random nonce
+#     nonce = str(random.randint(10**9, 10**10 - 1))  # 10-digit number as string
+
+#     # Build the proof request body
+#     proof_request_body = {
+#         "auto_remove": True,
+#         "auto_verify": auto_verify,
+#         "comment": comment,
+#         "connection_id": connection_id,
+#         "presentation_request": {
+#             "name": name,
+#             "nonce": nonce,
+#             "version": version,
+#             "requested_attributes": requested_attributes or {},
+#             "requested_predicates": requested_predicates or {}
+#         }
+#     }
+
+#     result = await http_request(
+#         "post",
+#         "/present-proof-2.0/send-request",
+#         payload=proof_request_body,
+#         headers=headers
+#     )
+
+#     return json.dumps(result, indent=2)
 
 
 

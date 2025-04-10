@@ -98,7 +98,7 @@ async def get_tenant_details() -> str:
     return json.dumps(result, indent=2)
 
 @mcp.tool()
-async def list_connections(
+async def query_connections(
     alias: str = None,
     connection_protocol: str = None,
     invitation_key: str = None,
@@ -106,7 +106,7 @@ async def list_connections(
     limit: int = 100,
     my_did: str = None,
     offset: int = 0,
-    # state: str = active,
+    state: str = "active",
     their_did: str = None,
     their_public_did: str = None,
     their_role: str = None
@@ -122,9 +122,10 @@ async def list_connections(
         limit: Number of results to return (default: 100).
         my_did: Filter by my DID.
         offset: Pagination offset (default: 0).
-        their_did: Filter by their DID.
-        their_public_did: Filter by their public DID.
-        their_role: Filter by their role.
+        their_did: Optional Filter by their DID.
+        their_public_did: Optional Filter by their public DID.
+        their_role: Optional Filter by their role.
+        state: Optional Filter by connection status
 
     Returns:
         JSON-formatted string containing the list of connections or an error message.
@@ -141,7 +142,7 @@ async def list_connections(
         "limit": limit,
         "my_did": my_did,
         "offset": offset,
-        "state": "active",
+        "state": state,
         "their_did": their_did,
         "their_public_did": their_public_did,
         "their_role": their_role
@@ -371,7 +372,7 @@ async def create_credential_definition(
 
 
 @mcp.tool()
-async def send_basic_message(conn_id: str, content: str) -> str:
+async def send_message(conn_id: str, content: str) -> str:
     """
     Send a message to a connection.
 

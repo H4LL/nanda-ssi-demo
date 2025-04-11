@@ -36,14 +36,14 @@ Infographics provide context on SSI components, Traction's digital infrastructur
 
 The objective is to simulate agent-driven workflows. As Alice, a test agent, the following capabilities are tested:
 
-1. Retrieve tenancy metadata  
-2. Register new credential schemas  
-3. Publish credential definitions  
-4. Exchange PeerDIDComm messages  
-5. Poll received PeerDIDComm messages  
-6. Issue verifiable credentials  
-7. Accept and store credentials  
-8. Request proof presentations
+- ✅ Retrieve tenancy metadata  
+- ✅ Register new credential schemas  
+- ✅ Publish credential definitions  
+- ✅ Exchange PeerDIDComm messages  
+- ✅ Poll received PeerDIDComm messages  
+- 🔄 Issue verifiable credentials  
+- 🔄 Accept and store credentials  
+- 🔄 Request proof presentations
 
 This phase validates that independent agents can orchestrate these functions using only MCP APIs.
 

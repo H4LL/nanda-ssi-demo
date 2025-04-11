@@ -1,4 +1,4 @@
-# ACA-Py Reactive MCP Server: A Decentralized Trust Layer for Agent Communications
+# ACA-Py Reactive MCP Server: A Decentralized Trust Layer for AI Agent Communications
 
 ## Overview
 

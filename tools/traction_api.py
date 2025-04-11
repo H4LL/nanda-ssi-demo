@@ -12,12 +12,14 @@ load_dotenv()
 
 TENANT_ID = os.getenv("TENANT_ID", "").strip()
 API_KEY = os.getenv("API_KEY", "").strip()
+TRACTION_BASE_URL = os.getenv("TRACTION_BASE_URL", "").strip()
+
 
 print("API_TOOL")
 print("TENANT_ID:", repr(TENANT_ID))
 print("API_KEY:", repr(API_KEY))
 
-TRACTION_BASE_URL = "http://localhost:8032"
+# TRACTION_BASE_URL = "http://traction_api.xanaducyber.com"
 
 # Configure logging
 logger = logging.getLogger(__name__)

@@ -51,13 +51,15 @@ This phase validates that independent agents can orchestrate these functions usi
 
 ## Phase 2: Credential Holder-to-Service Provider Interactions
 
-We introduce Bob, a service agent listening for PeerDIDComm requests. Bob acts only when the connecting party is credentialed and authorized.
+In this phase, we introduce **Bob**, a service agent that listens for incoming PeerDIDComm messages. Bob operates under strict trust policies, responding only to agents that present valid, verifiable credentials.
 
 ### Trust Workflow
 
-- Bob receives a PeerDIDComm message from Alice  
-- MCP verifies Alice's credentials and trust claims  
-- If valid, Bob returns an appropriate message or grants resource access
+1. **Message Reception**: Bob receives a PeerDIDComm message from Alice.
+2. **Credential Verification**: Utilizing the MCP framework, Bob verifies the authenticity and validity of Alice's credentials, ensuring they meet the required trust criteria.
+3. **Access Decision**: If Alice's credentials are valid and satisfy the trust policies, Bob proceeds to respond appropriately, which may include granting access to protected resources or services.
+
+This workflow ensures that only agents with verified credentials can interact with service agents like Bob, maintaining a secure and trustworthy communication environment.
 
 ---
 

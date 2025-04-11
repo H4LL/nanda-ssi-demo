@@ -279,7 +279,7 @@ async def test_list_connections(llama_model: ChatOllama, persona: str) -> None:
 
 
 @pytest.mark.asyncio
-async def test_oob_invitation(llama_model: ChatOllama, persona: str) -> None:
+async def test_oob_invitation(mistral_model: ChatOllama, persona: str) -> None:
     """
     Test to verify the creation of an out-of-band SSI agent invitation.
     
@@ -289,98 +289,13 @@ async def test_oob_invitation(llama_model: ChatOllama, persona: str) -> None:
         async with ClientSession(read, write) as session:
             await session.initialize()
             tools = await load_mcp_tools(session)
-            agent = create_react_agent(llama_model, tools)
-            question = "Could you create an out of band SSI agent invitation for my friend Bob?\n"
+            agent = create_react_agent(mistral_model, tools)
+            question = "Could you create an out of band SSI agent invitation for my friend Bob? I'd like their alias to be Bob. Give me the url \n"
             response = await process_query(query=question, agent=agent, persona=persona)
             assert isinstance(response, dict)
             assert "messages" in response
             assert len(response["messages"]) > 0
 
-
-@pytest.mark.asyncio
-async def test_scheme_creation(llama_model: ChatOllama, persona: str) -> None:
-    """
-    Test to verify the creation of a new NANDA scheme.
-    
-    """
-    server_params = StdioServerParameters(command="python", args=["../tools/traction_api.py"])
-    async with stdio_client(server_params) as (read, write):
-        async with ClientSession(read, write) as session:
-            await session.initialize()
-            tools = await load_mcp_tools(session)
-            agent = create_react_agent(llama_model, tools)
-            question = (
-                "I'd like to create a new NANDA scheme with a single binary field which will allow "
-                "people to verify that they were at the hackathon. The scheme version is '1.0' and "
-                "the exact attribute name that I want is 'hackathon_attendance'. If the scheme already exists then that's fine, mission accomplished. \n"
-            )
-            response = await process_query(query=question, agent=agent, persona=persona)
-            assert isinstance(response, dict)
-            assert "messages" in response
-            assert len(response["messages"]) > 0
-
-@pytest.mark.asyncio
-async def test_list_schemes(llama_model: ChatOllama, persona: str) -> None:
-    """
-    Test to verify the creation of a new NANDA scheme.
-    
-    """
-    server_params = StdioServerParameters(command="python", args=["../tools/traction_api.py"])
-    async with stdio_client(server_params) as (read, write):
-        async with ClientSession(read, write) as session:
-            await session.initialize()
-            tools = await load_mcp_tools(session)
-            agent = create_react_agent(llama_model, tools)
-            question = (
-                "Which Schemes have I created? \n"
-            )
-            response = await process_query(query=question, agent=agent, persona=persona)
-            assert isinstance(response, dict)
-            assert "messages" in response
-            assert len(response["messages"]) > 0
-
-@pytest.mark.asyncio
-async def test_credential_creation(llama_model: ChatOllama, persona: str) -> None:
-    """
-    Test to verify the creation of a new NANDA scheme.
-    
-    """
-    server_params = StdioServerParameters(command="python", args=["../tools/traction_api.py"])
-    async with stdio_client(server_params) as (read, write):
-        async with ClientSession(read, write) as session:
-            await session.initialize()
-            tools = await load_mcp_tools(session)
-            agent = create_react_agent(llama_model, tools)
-            question = (
-                "I'd like to create a new credential defnition with the 'GeLsnrSj8Xofy6B9T5MMTi:2:NANDA:1.0' scheme."
-                "The credential definition tag should be 'NANDA Hackathon Attendence' "
-                "If the credential definition already exists then that's fine, mission accomplished. \n"
-            )
-            response = await process_query(query=question, agent=agent, persona=persona)
-            assert isinstance(response, dict)
-            assert "messages" in response
-            assert len(response["messages"]) > 0
-
-
-@pytest.mark.asyncio
-async def test_list_credentials(llama_model: ChatOllama, persona: str) -> None:
-    """
-    Test to verify the creation of a new NANDA scheme.
-    
-    """
-    server_params = StdioServerParameters(command="python", args=["../tools/traction_api.py"])
-    async with stdio_client(server_params) as (read, write):
-        async with ClientSession(read, write) as session:
-            await session.initialize()
-            tools = await load_mcp_tools(session)
-            agent = create_react_agent(llama_model, tools)
-            question = (
-                "Which credential definitions have I created?\n"
-            )
-            response = await process_query(query=question, agent=agent, persona=persona)
-            assert isinstance(response, dict)
-            assert "messages" in response
-            assert len(response["messages"]) > 0
 
 @pytest.mark.asyncio
 async def test_scheme_creation(mistral_model: ChatOllama, persona: str) -> None:
@@ -395,18 +310,17 @@ async def test_scheme_creation(mistral_model: ChatOllama, persona: str) -> None:
             tools = await load_mcp_tools(session)
             agent = create_react_agent(mistral_model, tools)
             question = (
-                "I'd like to create a new NANDA scheme with a single binary field which will allow "
-                "people to verify that they were at the hackathon. The scheme version is '1.0' and "
-                "the exact attribute name that I want is 'hackathon_attendance'. If the scheme already exists then that's fine, mission accomplished. \n"
+                "I'd like to create a new scheme named after NANDA"
+                "The scheme version is '4.0' and "
+                "the exact attribute name that I want is 'hackathon_attendance'. \n"
             )
             response = await process_query(query=question, agent=agent, persona=persona)
             assert isinstance(response, dict)
             assert "messages" in response
             assert len(response["messages"]) > 0
 
-
 @pytest.mark.asyncio
-async def test_credential_offer(mistral_model: ChatOllama, persona: str) -> None:
+async def test_list_schemes(mistral_model: ChatOllama, persona: str) -> None:
     """
     Test to verify the creation of a new NANDA scheme.
     
@@ -418,12 +332,57 @@ async def test_credential_offer(mistral_model: ChatOllama, persona: str) -> None
             tools = await load_mcp_tools(session)
             agent = create_react_agent(mistral_model, tools)
             question = (
-                "I'd like you to send a credential offer to my connection with the alias 'Unit Test Invitation'. I'd like to send them one of the NANDA Hackathon Attendence credentials, mark them as having attended.\n"
+                "Which Schemes have I created? \n"
             )
             response = await process_query(query=question, agent=agent, persona=persona)
             assert isinstance(response, dict)
             assert "messages" in response
             assert len(response["messages"]) > 0
+
+
+@pytest.mark.asyncio
+async def test_credential_creation(mistral_model: ChatOllama, persona: str) -> None:
+    """
+    Test to verify the creation of a new NANDA credential scheme.
+    
+    """
+    server_params = StdioServerParameters(command="python", args=["../tools/traction_api.py"])
+    async with stdio_client(server_params) as (read, write):
+        async with ClientSession(read, write) as session:
+            await session.initialize()
+            tools = await load_mcp_tools(session)
+            agent = create_react_agent(mistral_model, tools)
+            question = (
+                "I'd like to create one single new credential defnition using the scheme the fourth version of the NANDA scheme."
+                "The credential definition tag should be 'NANDA TOP CREDENTIAL'. The credential definition should support revocation. "
+                "If the credential definition already exists then that's fine, mission accomplished. \n"
+            )
+            response = await process_query(query=question, agent=agent, persona=persona)
+            assert isinstance(response, dict)
+            assert "messages" in response
+            assert len(response["messages"]) > 0
+
+
+@pytest.mark.asyncio
+async def test_list_credentials(mistral_model: ChatOllama, persona: str) -> None:
+    """
+    Test to verify the creation of a new NANDA scheme.
+    
+    """
+    server_params = StdioServerParameters(command="python", args=["../tools/traction_api.py"])
+    async with stdio_client(server_params) as (read, write):
+        async with ClientSession(read, write) as session:
+            await session.initialize()
+            tools = await load_mcp_tools(session)
+            agent = create_react_agent(mistral_model, tools)
+            question = (
+                "Which credential definitions have I already created?\n"
+            )
+            response = await process_query(query=question, agent=agent, persona=persona)
+            assert isinstance(response, dict)
+            assert "messages" in response
+            assert len(response["messages"]) > 0
+
 
 
 @pytest.mark.asyncio
@@ -439,7 +398,7 @@ async def test_send_message(mistral_model: ChatOllama, persona: str) -> None:
             tools = await load_mcp_tools(session)
             agent = create_react_agent(mistral_model, tools)
             question = (
-                "Please send a message to my active connection. Their alias is 'Unit Test Invitation'. Say 'Hi Bob'"
+                "Please send a message to my active connection Bob? Say 'Hi Bob'"
             )
             response = await process_query(query=question, agent=agent, persona=persona)
             assert isinstance(response, dict)
@@ -464,46 +423,29 @@ async def test_receive_message(mistral_model: ChatOllama, persona: str) -> None:
             response = await process_query(query=question, agent=agent, persona=persona)
             assert isinstance(response, dict)
             assert "messages" in response
-            assert len(response["messages"]) > 0            
+            assert len(response["messages"]) > 0          
+
 
 # @pytest.mark.asyncio
-# async def test_respond_in_three_prompts(qwq_model: ChatOllama, persona: str) -> None:
-#     """
-#     Multi-step test:
-#     1. Ask what the last message we received was.
-#     2. List all messages from that sender.
-#     3. Respond based on full conversation history.
-#     """
-#     server_params = StdioServerParameters(command="python", args=["../tools/traction_api.py"])
+async def test_credential_offer(mistral_model: ChatOllama, persona: str) -> None:
+    """
+    Test to verify the creation of a new NANDA scheme.
     
-#     async with stdio_client(server_params) as (read, write):
-#         async with ClientSession(read, write) as session:
-#             await session.initialize()
-#             tools = await load_mcp_tools(session)
-#             agent = create_react_agent(qwq_model, tools)
+    """
+    server_params = StdioServerParameters(command="python", args=["../tools/traction_api.py"])
+    async with stdio_client(server_params) as (read, write):
+        async with ClientSession(read, write) as session:
+            await session.initialize()
+            tools = await load_mcp_tools(session)
+            agent = create_react_agent(mistral_model, tools)
+            question = (
+                "I'd like you to send a credential offer to my connection 'Bob'. I'd like to send them one of the 'NANDA TOP CREDENTIAL' credentials, mark them as having attended.\n"
+            )
+            response = await process_query(query=question, agent=agent, persona=persona)
+            assert isinstance(response, dict)
+            assert "messages" in response
+            assert len(response["messages"]) > 0  
 
-#             # Step 1: Ask what the last received message was
-#             step1_question = "What was the last message we received? Who sent it?"
-#             step1_response = await process_query(query=step1_question, agent=agent, persona=persona)
-#             assert isinstance(step1_response, dict)
-#             # assert "last_message" in step1_response
-#             # assert "sender" in step1_response
-#             # sender = step1_response["sender"]
-
-#             # Step 2: List all messages from that sender
-#             step2_question = f"List all messages we've received from that person. \n <context>{step1_response}<context>\n "
-#             step2_response = await process_query(query=step2_question, agent=agent, persona=persona)
-#             assert isinstance(step2_response, dict)
-#             # assert "messages" in step2_response
-#             # assert isinstance(step2_response["messages"], list)
-#             # assert len(step2_response["messages"]) > 0
-
-#             # Step 3: Send an appropriate response based on the conversation history
-#             step3_question = f"Based on this conversation history, send the appropriate reply to that person. Feel free to choose whatever response is appropriate to send as a message \n<context>{step1_response} {step2_response}</context>\n"
-#             step3_response = await process_query(query=step3_question, agent=agent, persona=persona)
-#             assert isinstance(step3_response, dict)
-#             # assert "reply" in step3_response
-#             # assert isinstance(step3_response["reply"], str)
 
 
 

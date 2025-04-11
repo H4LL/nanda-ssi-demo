@@ -157,41 +157,6 @@ async def query_connections(
     return json.dumps(result, indent=2)
 
 @mcp.tool()
-async def get_created_schemas(
-    schema_id: str = None,
-    schema_issuer_did: str = None,
-    schema_name: str = None,
-    schema_version: str = None
-) -> str:
-    """
-    Retrieve schemas created by this agent using the /schemas/created endpoint.
-
-    Args:
-        schema_id: Optional filter by full schema ID.
-        schema_issuer_did: Optional filter by issuer DID.
-        schema_name: Optional filter by schema name.
-        schema_version: Optional filter by schema version.
-
-    Returns:
-        A JSON-formatted string containing schema IDs or an error message.
-    """
-    logger.info("Tool get_created_schemas called")
-
-    headers = {"Authorization": f"Bearer {await get_bearer_token()}"}
-    params = {
-        "schema_id": schema_id,
-        "schema_issuer_did": schema_issuer_did,
-        "schema_name": schema_name,
-        "schema_version": schema_version,
-    }
-
-    # Remove any None values from query parameters
-    query_params = {k: v for k, v in params.items() if v is not None}
-
-    result = await http_request("get", "/schemas/created", payload=query_params, headers=headers)
-    return json.dumps(result, indent=2)
-
-@mcp.tool()
 async def create_out_of_band_invitation(
     alias: str = "Default Alias",
     handshake: bool = True,
@@ -303,6 +268,85 @@ async def create_schema(
 
     result = await http_request("post", f"/schemas{query_string}", payload=payload, headers=headers)
     return json.dumps(result, indent=2)
+
+@mcp.tool()
+async def list_created_schemas(
+    schema_id: str = None,
+    schema_issuer_did: str = None,
+    schema_name: str = None,
+    schema_version: str = None
+) -> str:
+    """
+    Retrieve schemas created by this agent using the /schemas/created endpoint.
+
+    Args:
+        schema_id: Optional filter by full schema ID.
+        schema_issuer_did: Optional filter by issuer DID.
+        schema_name: Optional filter by schema name.
+        schema_version: Optional filter by schema version.
+
+    Returns:
+        A JSON-formatted string containing schema IDs or an error message.
+    """
+    logger.info("Tool get_created_schemas called")
+
+    headers = {"Authorization": f"Bearer {await get_bearer_token()}"}
+    params = {
+        "schema_id": schema_id,
+        "schema_issuer_did": schema_issuer_did,
+        "schema_name": schema_name,
+        "schema_version": schema_version,
+    }
+
+    # Remove any None values from query parameters
+    query_params = {k: v for k, v in params.items() if v is not None}
+
+    result = await http_request("get", "/schemas/created", payload=query_params, headers=headers)
+    return json.dumps(result, indent=2)
+
+# @mcp.tool()
+# async def list_schemas_in_storage() -> str:
+#     """
+#     Retrieve all schemas stored in schema storage.
+
+#     Returns:
+#         JSON-formatted string of the schema list, including metadata such as schema_id,
+#         state, and timestamps.
+#     """
+#     logger.info("Tool list_schemas called")
+
+#     headers = {"Authorization": f"Bearer {await get_bearer_token()}"}
+
+#     result = await http_request(
+#         "get",
+#         "/schema-storage",
+#         headers=headers
+#     )
+
+#     return json.dumps(result, indent=2)
+
+# @mcp.tool()
+# async def delete_schema(schema_id: str) -> str:
+#     """
+#     Delete a schema from schema storage using its identifier.
+
+#     Args:
+#         schema_id: The unique identifier of the schema to delete.
+
+#     Returns:
+#         JSON-formatted string indicating success or failure of deletion.
+#     """
+#     logger.info("Tool delete_schema called with schema_id=%s", schema_id)
+
+#     headers = {"Authorization": f"Bearer {await get_bearer_token()}"}
+
+#     result = await http_request(
+#         "delete",
+#         f"/schema-storage/{schema_id}",
+#         headers=headers
+#     )
+
+#     return json.dumps(result, indent=2)
 
 @mcp.tool()
 async def get_schema_by_id(schema_id: str) -> str:

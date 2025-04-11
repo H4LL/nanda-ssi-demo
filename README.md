@@ -1,50 +1,108 @@
-# ACA‑Py Reactive MCP Server - A Decentralised Trust Layer for Inter-Agent Communications
+# ACA-Py Reactive MCP Server: A Decentralized Trust Layer for Agent Communications
 
 ## Overview
 
-This project implements an interaction layer between an Aries Cloud Agent Python (ACA‑Py) and a generative AI environment instance using the MCP framework. We implement a reactive client which interacts with an ChatOllama model (Llama 3.2) and integrates multiple MCP tools generated from ACA‑Py’s swagger specification. The client supports multistage tool invocations with a structured conversation history and produces a clean, summarized output.
+This project establishes a middleware communication layer between a [Traction Self-Sovereign Identity (SSI) Custodial Wallet](https://traction.xanaducyber.com) and a generative AI agent environment, using the Message-Channel-Protocol (MCP) framework. It integrates:
 
-This project will run through the [alice-faber demo](https://github.com/openwallet-foundation/acapy/tree/main/docs/demo#the-alicefaber-python-demo) as hosted by the open wallet foundation. The twist is that alice and faber are both autonomous agents and they will be engaging in these flows autonomously.
+- A reactive client that communicates with a ChatOllama AI model  
+- Multiple toolchains derived from [Traction's Swagger API](https://traction_api.xanaducyber.com)  
+- Structured, multi-turn conversation flows  
+- Comprehensive integration testing using a synthetic test tenant ("Alice")
 
-### Phase 1: MCP Agents as an Interface between Credential Subjects and their Agent
+The client simulates complex workflows by invoking tools in a structured fashion and summarizing outputs clearly. Tests are configured via `.example-env` and validate real-time interactions against the Traction instance.
 
-Initially our goal is to be able to use MCP architecute to interact with our agents independently. The use case is that I am Faber, I want to issue a credential to Alice and I want to do so using the MCP client to interact with my agent on my behalf. We will also be using a seperate MCP client as Alice to interact with her Agent. Using these capabilities we will run through the alice-faber script:
+---
 
-1. Connect
-2. Issue Credential
-3. Prove Claim
+## Architecture and System Design
 
-###  Phase 2: MCP Agents as Credential Holders – Demonstrating Trust Attributes to Service Consumers
+The architecture is modular:
 
-#### Use Case: Secure Access to a Restricted Resource
+- **Front End:** Swagger UI, Public Portal, Business Dashboard  
+- **Back End:** ACA-Py, Traction Middleware, MCP Server  
+- **Reverse Proxy:** NGINX for routing and TLS termination
 
-In this next phase, we leverage ACA‑Py to hold agent-driven credentials which manage reputation and trust assertions during nested inter-agent communications. For example, consider a scenario where one agent must prove its reputation and trustworthiness to gain access to a restricted resource managed by another agent.
+Agents communicate using [PeerDIDComm](https://identity.foundation/peer-did-method-spec/), supporting verifiable, encrypted messaging.
 
-**Benefits**
+Infographics provide context on SSI components, Traction's digital infrastructure, and typical usage scenarios across justice and consumer ecosystems.
 
-- **P2P Autonomous Trust Evaluations:**  
-  Only agents that can prove their trustworthiness through valid credentials are allowed to access sensitive resources.
+<img src="img/traction.png" alt="" width="500"/>
+<img src="img/SSI.png" alt="" width="500"/>
+<img src="img/justice.png" alt="" width="500"/>
+<img src="img/experiences.png" alt="" width="500"/>
 
-- **Interoperability:**  
-  Standardized credentials and DIDComm protocols enable seamless interactions between diverse agents in a decentralized ecosystem.
+---
 
-- **Dynamic Trust Management:**  
-  The system supports updates and revocations of credentials, ensuring that trust assertions remain current and reflective of an agent's ongoing reputation.
+## Phase 1: Credential Subject-Agent Interaction with MCP
 
-- **Credential-based Single-Use Access Tokens:**  
-  Credentials can also function as single-use access tokens that grant temporary or limited access to computational or data resources. In environments where an AI is delegated resource access under budget constraints, these tokens help manage and monitor usage. Each token is authenticated, ensuring that only authorized and budget-compliant requests are processed.
+The objective is to simulate agent-driven workflows. As Alice, a test agent, the following capabilities are tested:
 
+1. Retrieve tenancy metadata  
+2. Register new credential schemas  
+3. Publish credential definitions  
+4. Exchange PeerDIDComm messages  
+5. Poll received PeerDIDComm messages  
+6. Issue verifiable credentials  
+7. Accept and store credentials  
+8. Request proof presentations
 
-**Agents Involved:**
+This phase validates that independent agents can orchestrate these functions using only MCP APIs.
 
-- **Consumer Agent (Agent A):**  
-  Represents an entity that wishes to access a restricted service or resource. This agent holds credentials attesting to its reputation, compliance, or other trust attributes issued by a trusted authority.
+---
 
-- **Service Provider Agent (Agent B):**  
-  Manages access to the restricted resource and requires verification of the consumer agent's trust attributes before granting access.
+## Phase 2: Credential Holder-to-Service Provider Interactions
 
+We introduce Bob, a service agent listening for PeerDIDComm requests. Bob acts only when the connecting party is credentialed and authorized.
 
-## Summary
+### Trust Workflow
 
-This use case demonstrates a complete agent-to-agent interaction where Agent A, acting as a credential holder, securely presents its trust attributes to Agent B, a service provider. Upon successful verification, Agent B grants access to a restricted resource, thereby ensuring that only trusted agents can participate in sensitive operations.
+- Bob receives a PeerDIDComm message from Alice  
+- MCP verifies Alice's credentials and trust claims  
+- If valid, Bob returns an appropriate message or grants resource access
 
+---
+
+## Core Benefits
+
+### 1. Autonomous, Peer-to-Peer Trust Evaluation
+Agents rely solely on credential-based verification, ensuring minimal central control.
+
+### 2. Protocol-Level Interoperability
+Standard schemas and DIDComm protocols foster cross-agent compatibility.
+
+### 3. Dynamic Credential Management
+Agents can issue, revoke, or expire credentials to maintain real-time trust.
+
+### 4. Access as a Credentialized Function
+Credentials can double as access tokens—ideal for rate-limited, auditable AI services.
+
+### 5. Secure Agent Tunnels
+PeerDIDComm channels validate and secure attribute disclosures in real time.
+
+---
+
+## Role Definitions
+
+### Agent A (Credential Holder / Consumer)
+- Represents a party (e.g., Alice) wishing to prove trustworthiness  
+- Holds signed credentials issued by authoritative parties
+
+### Agent B (Service Provider)
+- Receives trust claims  
+- Validates credentials before allowing access to sensitive APIs or services
+
+---
+
+## Conclusion
+
+This system enables scalable, credential-driven trust frameworks between autonomous agents. Using ACA-Py, Traction, and MCP, it delivers a composable, privacy-respecting infrastructure ideal for regulated environments and AI-integrated applications.
+
+---
+
+## Resources
+
+- [Traction Custodial Wallet](https://traction.xanaducyber.com)  
+- [Traction API Swagger Docs](https://traction_api.xanaducyber.com)  
+- [PeerDIDComm Spec](https://identity.foundation/peer-did-method-spec/)
+
+Integration test outcomes are available under `tests/test_results`.  
+To simulate Alice's perspective, refer to the `.example-env` configuration file.

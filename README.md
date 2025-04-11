@@ -63,20 +63,20 @@ We introduce Bob, a service agent listening for PeerDIDComm requests. Bob acts o
 
 ## Core Benefits
 
-### 1. Autonomous, Peer-to-Peer Trust Evaluation
-Agents rely solely on credential-based verification, ensuring minimal central control.
+### 1. Agent-Native, Credential-Gated Access Control  
+This system enables autonomous peer-to-peer trust evaluation: agents do not rely on centralized authorization services but instead authenticate interactions using verifiable credentials. Authorization becomes portable, auditable, and cryptographically secure.
 
-### 2. Protocol-Level Interoperability
-Standard schemas and DIDComm protocols foster cross-agent compatibility.
+### 2. Seamless Interoperability via Open Protocols  
+Built on W3C-standard Verifiable Credentials and [DIDComm](https://identity.foundation/didcomm-messaging/spec/), agents across diverse platforms and programming stacks can interoperate without custom APIs or pre-shared secrets. This architecture fosters a plug-and-play ecosystem of composable agent services.
 
-### 3. Dynamic Credential Management
-Agents can issue, revoke, or expire credentials to maintain real-time trust.
+### 3. Real-Time, Lifecycle-Aware Credential Management  
+Agents can issue, revoke, suspend, or update credentials dynamically, allowing trust relationships to evolve in step with business logic. Trust becomes an operational primitive, not a static assumption.
 
-### 4. Access as a Credentialized Function
-Credentials can double as access tokens—ideal for rate-limited, auditable AI services.
+### 4. Credential-Driven Invocation of AI Agents  
+MCP enables the deployment and invocation of AI services entirely via text-based DIDComm messages. A credentialed agent can *request*, *parameterize*, and *control* an AI function (e.g., ChatOllama) over secure, private channels—without exposing raw endpoints or keys. This pattern allows AI workflows to be orchestrated through declarative messages, governed by trust policies.
 
-### 5. Secure Agent Tunnels
-PeerDIDComm channels validate and secure attribute disclosures in real time.
+### 5. Encrypted, Authenticated Channels for Agent Dialogue  
+Each PeerDIDComm tunnel is a mutually authenticated, end-to-end encrypted communication stream between two agents. Attribute disclosures and service requests are scoped to the trust context of the connection, enabling rich, private conversations and auditable message flows between agents, AI functions, and users.
 
 ---
 

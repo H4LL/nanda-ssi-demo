@@ -5,7 +5,7 @@
 This project establishes a middleware communication layer between a [Traction Self-Sovereign Identity (SSI) Custodial Wallet](https://traction.xanaducyber.com) and a generative AI agent environment, using the Message-Channel-Protocol (MCP) framework. It integrates:
 
 - A reactive client that communicates with a ChatOllama AI model  
-- Multiple toolchains derived from [Traction's Swagger API](https://traction_api.xanaducyber.com)  
+- Multiple toolchains derived from [Traction's Swagger API](https://traction-api.xanaducyber.com)  
 - Structured, multi-turn conversation flows  
 - Comprehensive integration testing using a synthetic test tenant ("Alice")
 
